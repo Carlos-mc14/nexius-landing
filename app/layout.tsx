@@ -7,10 +7,9 @@ import "./globals.css"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Tu Empresa - Soluciones Digitales a Medida",
+  title: "Nexius | Soluciones Digitales",
   description:
-    "Desarrollamos software a medida, sitios web y sistemas especializados para restaurantes, hoteles y más.",
-    generator: 'v0.dev'
+    "Desarrollamos software a medida, sitios web y sistemas especializados para restaurantes, hoteles y más."
 }
 
 export default function RootLayout({
@@ -38,6 +37,9 @@ export default function RootLayout({
                 </a>
                 <a href="#portafolio" className="transition-colors hover:text-primary">
                   Portafolio
+                </a>
+                <a href="/equipo" className="transition-colors hover:text-primary">
+                  Equipo
                 </a>
                 <a href="#testimonios" className="transition-colors hover:text-primary">
                   Testimonios
@@ -130,9 +132,9 @@ export default function RootLayout({
                 <div className="space-y-4">
                   <h3 className="text-lg font-bold">Contacto</h3>
                   <ul className="space-y-2">
-                    <li className="text-gray-400">Calle Principal 123, Ciudad</li>
-                    <li className="text-gray-400">+123 456 7890</li>
-                    <li className="text-gray-400">info@nexius.lat</li>
+                    <li className="text-gray-400">Lima, Lima, Perú</li>
+                    <li className="text-gray-400">+51 999 999 999</li>
+                    <li className="text-gray-400">contacto@nexius.lat</li>
                   </ul>
                 </div>
               </div>

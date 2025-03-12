@@ -96,19 +96,25 @@ export async function POST(request: NextRequest) {
     const msgClient = {
       to: email,
       from: "no-reply@nexius.lat", // Cambia esto a un email verificado en SendGrid
-      subject: "Hemos recibido tu mensaje - Nexius Team",
+      subject: "📩 ¡Hemos recibido tu solicitud! - Nexius Team",
       text: `
         Hola ${nombre},
         
-        Gracias por contactarnos. Hemos recibido tu mensaje y nos pondremos en contacto contigo lo antes posible.
+        Gracias por comunicarte con Nexius. Hemos recibido tu mensaje y nuestro equipo lo revisará a la brevedad.
         
-        Saludos,
+        Si necesitas asistencia adicional, puedes contactarnos en cualquier momento a contacto@nexius.lat.
+        
+        Atentamente,
         El equipo de Nexius
       `,
       html: `
-        <h2>Hola ${nombre},</h2>
-        <p>Gracias por contactarnos. Hemos recibido tu mensaje y nos pondremos en contacto contigo lo antes posible.</p>
-        <p>Saludos,<br>El equipo de Nexius</p>
+        <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;">
+          <h2 style="color: #0056b3; text-align: center;">¡Hemos recibido tu mensaje!</h2>
+          <p>Hola <strong>${nombre}</strong>,</p>
+          <p>Gracias por comunicarte con <strong>Nexius</strong>. Hemos recibido tu mensaje y nuestro equipo lo revisará a la brevedad.</p>
+          <p>Si necesitas asistencia adicional, no dudes en escribirnos a <a href="mailto:contacto@nexius.lat" style="color: #0056b3; text-decoration: none;">contacto@nexius.lat</a>.</p>
+          <hr style="border: none; border-top: 1px solid #ddd;">
+        </div>
       `,
     }
 
@@ -118,11 +124,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true })
     } catch (emailError) {
       console.error("Error al enviar emails:", emailError)
-      return NextResponse.json({ error: "Error al enviar notificaciones por email" }, { status: 500 })
+      return NextResponse.json({ error: "Something went wrong. (1)" }, { status: 500 })
     }
   } catch (error) {
     console.error("Error en el servidor:", error)
-    return NextResponse.json({ error: "Error al procesar la solicitud" }, { status: 500 })
+    return NextResponse.json({ error: "Something went wrong. (2)" }, { status: 500 })
   }
 }
 
