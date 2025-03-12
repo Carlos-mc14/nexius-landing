@@ -299,6 +299,7 @@ export default function Home() {
             </div>
           </div>
           <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 lg:grid-cols-2 mt-12">
+            <ContactForm />
             <div className="space-y-6">
               <div>
                 <h3 className="text-2xl font-bold">Información de contacto</h3>
@@ -397,7 +398,6 @@ export default function Home() {
                 </div>
               </div>
             </div>
-            <ContactForm />
           </div>
         </div>
       </section>

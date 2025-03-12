@@ -21,7 +21,7 @@ const teamMembers = [
   },
   {
     id: 2,
-    name: "Melanie Tavara",
+    name: "Melanie Távara",
     position: "Desarrolladora Grafica",
     bio: "Especialista en diseño de interfaces y experiencia de usuario. Ha trabajado en proyectos para empresas de tecnología y startups.",
     image: "/placeholder.svg?height=400&width=400&text=CM",

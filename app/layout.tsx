@@ -1,7 +1,9 @@
 import type React from "react"
 import { ThemeProvider } from "@/components/theme-provider"
+import Navbar from "@/components/navbar"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
+import Link from "next/link"
 import "./globals.css"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -9,7 +11,7 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "Nexius | Soluciones Digitales",
   description:
-    "Desarrollamos software a medida, sitios web y sistemas especializados para restaurantes, hoteles y más."
+    "Desarrollamos software a medida, sitios web y sistemas especializados para restaurantes, hoteles y más.",
 }
 
 export default function RootLayout({
@@ -21,61 +23,11 @@ export default function RootLayout({
     <html lang="es" className="scroll-smooth" suppressHydrationWarning>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+          
           <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="container flex h-16 items-center">
-              <div className="mr-4 flex">
-                <a href="/" className="mr-6 flex items-center space-x-2">
-                  <span className="font-bold text-xl">Nexius</span>
-                </a>
-              </div>
-              <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
-                <a href="/" className="transition-colors hover:text-primary">
-                  Inicio
-                </a>
-                <a href="#servicios" className="transition-colors hover:text-primary">
-                  Servicios
-                </a>
-                <a href="#portafolio" className="transition-colors hover:text-primary">
-                  Portafolio
-                </a>
-                <a href="/equipo" className="transition-colors hover:text-primary">
-                  Equipo
-                </a>
-                <a href="#testimonios" className="transition-colors hover:text-primary">
-                  Testimonios
-                </a>
-                <a href="#contacto" className="transition-colors hover:text-primary">
-                  Contacto
-                </a>
-              </nav>
-              <div className="flex flex-1 items-center justify-end space-x-4">
-                <a
-                  href="#contacto"
-                  className="hidden md:inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                >
-                  Solicitar cotización
-                </a>
-                <button className="md:hidden">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-6 w-6"
-                  >
-                    <line x1="4" x2="20" y1="12" y2="12" />
-                    <line x1="4" x2="20" y1="6" y2="6" />
-                    <line x1="4" x2="20" y1="18" y2="18" />
-                  </svg>
-                </button>
-              </div>
-            </div>
+            <Navbar />
           </header>
+
           {children}
           <footer className="w-full py-6 md:py-0 bg-gray-900 text-white">
             <div className="container px-4 md:px-6">
@@ -88,24 +40,24 @@ export default function RootLayout({
                   <h3 className="text-lg font-bold">Servicios</h3>
                   <ul className="space-y-2">
                     <li>
-                      <a href="#" className="text-gray-400 hover:text-white">
+                      <Link href="#" className="text-gray-400 hover:text-white">
                         Diseño Web
-                      </a>
+                      </Link>
                     </li>
                     <li>
-                      <a href="#" className="text-gray-400 hover:text-white">
+                      <Link href="#" className="text-gray-400 hover:text-white">
                         Sistemas para Restaurantes
-                      </a>
+                      </Link>
                     </li>
                     <li>
-                      <a href="#" className="text-gray-400 hover:text-white">
+                      <Link href="#" className="text-gray-400 hover:text-white">
                         Sistemas para Hoteles
-                      </a>
+                      </Link>
                     </li>
                     <li>
-                      <a href="#" className="text-gray-400 hover:text-white">
+                      <Link href="#" className="text-gray-400 hover:text-white">
                         Desarrollo a Medida
-                      </a>
+                      </Link>
                     </li>
                   </ul>
                 </div>
@@ -113,19 +65,24 @@ export default function RootLayout({
                   <h3 className="text-lg font-bold">Empresa</h3>
                   <ul className="space-y-2">
                     <li>
-                      <a href="#nosotros" className="text-gray-400 hover:text-white">
+                      <Link href="#nosotros" className="text-gray-400 hover:text-white">
                         Sobre Nosotros
-                      </a>
+                      </Link>
                     </li>
                     <li>
-                      <a href="#portafolio" className="text-gray-400 hover:text-white">
+                      <Link href="/equipo" className="text-gray-400 hover:text-white">
+                        Equipo
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="#portafolio" className="text-gray-400 hover:text-white">
                         Portafolio
-                      </a>
+                      </Link>
                     </li>
                     <li>
-                      <a href="#testimonios" className="text-gray-400 hover:text-white">
+                      <Link href="#testimonios" className="text-gray-400 hover:text-white">
                         Testimonios
-                      </a>
+                      </Link>
                     </li>
                   </ul>
                 </div>
@@ -148,7 +105,3 @@ export default function RootLayout({
     </html>
   )
 }
-
-
-
-import './globals.css'

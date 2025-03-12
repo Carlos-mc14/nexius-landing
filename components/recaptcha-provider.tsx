@@ -1,5 +1,11 @@
 "use client"
 
+declare global {
+  interface Window {
+    grecaptcha: any
+  }
+}
+
 import type React from "react"
 
 import { createContext, useContext, useState } from "react"
