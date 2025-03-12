@@ -24,7 +24,14 @@ declare global {
 
 export function RecaptchaProvider({ children }: { children: React.ReactNode }) {
   const [isLoaded, setIsLoaded] = useState(false)
-
+  useEffect(() => {
+    if (window.grecaptcha) {
+      window.grecaptcha.ready(() => {
+        setIsLoaded(true)
+      })
+    }
+  }, [])
+  
   // Función para ejecutar reCAPTCHA
   const executeRecaptcha = async (action: string): Promise<string> => {
     if (!isLoaded || !window.grecaptcha) {
