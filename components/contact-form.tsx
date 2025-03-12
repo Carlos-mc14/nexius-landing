@@ -1,16 +1,17 @@
 "use client"
 
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { toast } from "@/hooks/use-toast"
-import { Loader2 } from "lucide-react"
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { toast } from '@/hooks/use-toast'
+import { Loader2 } from 'lucide-react'
+import { useRecaptcha } from '@/components/recaptcha-provider'
 
 // Definir el esquema de validación
 const formSchema = z.object({
@@ -26,6 +27,7 @@ type FormValues = z.infer<typeof formSchema>
 
 export default function ContactForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const { executeRecaptcha, isLoaded } = useRecaptcha()
 
   // Inicializar el formulario
   const form = useForm<FormValues>({
@@ -45,13 +47,24 @@ export default function ContactForm() {
     setIsSubmitting(true)
 
     try {
+      // Verificar si reCAPTCHA está cargado
+      if (!isLoaded) {
+        throw new Error('reCAPTCHA no está disponible. Por favor, recarga la página.')
+      }
+      
+      // Obtener token de reCAPTCHA
+      const recaptchaToken = await executeRecaptcha('contact_form')
+
       // Enviar datos a nuestra API
       const response = await fetch("/api/contact", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          ...data,
+          recaptchaToken
+        }),
       })
 
       const result = await response.json()
@@ -185,7 +198,18 @@ export default function ContactForm() {
             </FormItem>
           )}
         />
-
+        { /*Caja de reCaptcha*/}
+        <div className="text-xs text-gray-500 mt-2">
+          Este sitio está protegido por reCAPTCHA y aplican la{' '}
+          <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="underline">
+            Política de Privacidad
+          </a>{' '}
+          y los{' '}
+          <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" className="underline">
+            Términos de Servicio
+          </a>{' '}
+          de Google.
+        </div>
         <Button type="submit" className="w-full" disabled={isSubmitting}>
           {isSubmitting ? (
             <>

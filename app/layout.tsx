@@ -1,6 +1,7 @@
 import type React from "react"
 import { ThemeProvider } from "@/components/theme-provider"
 import Navbar from "@/components/navbar"
+import { RecaptchaProvider } from "@/components/recaptcha-provider"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import Link from "next/link"
@@ -23,7 +24,7 @@ export default function RootLayout({
     <html lang="es" className="scroll-smooth" suppressHydrationWarning>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-          
+          <RecaptchaProvider>
           <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <Navbar />
           </header>
@@ -100,6 +101,7 @@ export default function RootLayout({
               </div>
             </div>
           </footer>
+          </RecaptchaProvider>
         </ThemeProvider>
       </body>
     </html>

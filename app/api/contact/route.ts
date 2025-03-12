@@ -14,10 +14,10 @@ const contactSchema = z.object({
   empresa: z.string().min(2),
   servicio: z.string().min(1),
   mensaje: z.string().min(10),
+  recaptchaToken: z.string().min(1, "Token de reCAPTCHA requerido"),
 })
 
 // Configurar rate limiting
-// Nota: Necesitarás configurar Upstash Redis o usar otra solución
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL || "",
   token: process.env.UPSTASH_REDIS_REST_TOKEN || "",
@@ -25,9 +25,35 @@ const redis = new Redis({
 
 const ratelimit = new Ratelimit({
   redis,
-  limiter: Ratelimit.slidingWindow(2, "12 h"), // 3 solicitudes por hora por IP
+  limiter: Ratelimit.slidingWindow(2, "12 h"), // 2 solicitudes cada 12 horas por IP
 })
-
+// Verificar token de reCAPTCHA
+async function verifyRecaptcha(token: string) {
+  const secretKey = process.env.RECAPTCHA_SECRET_KEY
+  
+  try {
+    const response = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: `secret=${secretKey}&response=${token}`,
+    })
+    
+    const data = await response.json()
+    
+    return {
+      success: data.success,
+      score: data.score, // Puntuación entre 0.0 y 1.0
+      action: data.action,
+      hostname: data.hostname,
+      errorCodes: data['error-codes'],
+    }
+  } catch (error) {
+    console.error('Error al verificar reCAPTCHA:', error)
+    return { success: false, score: 0, errorCodes: ['recaptcha-verify-failed'] }
+  }
+}
 export async function POST(request: NextRequest) {
   try {
     // Obtener la IP del cliente para rate limiting
@@ -61,9 +87,28 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { nombre, email, telefono, empresa, servicio, mensaje } = result.data
+    const { nombre, email, telefono, empresa, servicio, mensaje, recaptchaToken } = result.data
 
-    // Y en la función POST, reemplaza el comentario de SendGrid con:
+    // Verificar reCAPTCHA
+    const recaptchaResult = await verifyRecaptcha(recaptchaToken)
+    
+    if (!recaptchaResult.success) {
+      return NextResponse.json(
+        { 
+          error: 'Verificación de seguridad fallida', 
+          details: recaptchaResult.errorCodes 
+        },
+        { status: 400 }
+      )
+    }
+    
+    // Verificar puntuación de reCAPTCHA (0.0 a 1.0, donde 1.0 es muy probablemente un humano)
+    if (recaptchaResult.score < 1.0) {
+      return NextResponse.json(
+        { error: 'La verificación de seguridad indica actividad sospechosa. Por favor, intenta nuevamente.' },
+        { status: 400 }
+      )
+    }
 
     // Configurar SendGrid
     sgMail.setApiKey(process.env.SENDGRID_API_KEY || "")
