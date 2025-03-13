@@ -1,6 +1,5 @@
 ## If you would like to see the final result you can check out at [https://www.nexius.lat/](https://www.nexius.lat/).
 
-
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
