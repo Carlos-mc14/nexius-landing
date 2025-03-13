@@ -1,5 +1,4 @@
-## If you would like to see the final result you can check out at [https://www.nexius.lat/](https://www.nexius.lat/). [![Site Status](https://api.netlify.com/api/v1/badges/adea491e-b922-4639-abb8-6e1d7e5c9113/deploy-status)](https://app.netlify.com/sites/nexius/deploys)
-
+## If you would like to see the final result you can check out at [https://www.nexius.lat/](https://www.nexius.lat/).
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
