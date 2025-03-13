@@ -11,7 +11,7 @@ const contactSchema = z.object({
   nombre: z.string().min(2),
   email: z.string().email(),
   telefono: z.string().min(6),
-  empresa: z.string().min(0).optional(),
+  empresa: z.string().min(2),
   servicio: z.string().min(1),
   mensaje: z.string().min(10),
   recaptchaToken: z.string().min(1, "Token de reCAPTCHA requerido"),
@@ -25,8 +25,9 @@ const redis = new Redis({
 
 const ratelimit = new Ratelimit({
   redis,
-  limiter: Ratelimit.slidingWindow(10, "12 h"), // 2 solicitudes cada 12 horas por IP
+  limiter: Ratelimit.slidingWindow(2000, "12 h"), // 2 solicitudes cada 12 horas por IP
 })
+
 // Verificar token de reCAPTCHA
 async function verifyRecaptcha(token: string) {
   const secretKey = process.env.RECAPTCHA_SECRET_KEY
@@ -103,7 +104,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Verificar puntuación de reCAPTCHA (0.0 a 1.0, donde 1.0 es muy probablemente un humano)
-    if (recaptchaResult.score < 1.0) {
+    if (recaptchaResult.score < 0.8) {
       return NextResponse.json(
         { error: 'La verificación de seguridad indica actividad sospechosa. Por favor, intenta nuevamente.' },
         { status: 400 }
