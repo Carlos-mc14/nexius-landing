@@ -27,6 +27,7 @@ const ratelimit = new Ratelimit({
   redis,
   limiter: Ratelimit.slidingWindow(2, "12 h"), // 2 solicitudes cada 12 horas por IP
 })
+
 // Verificar token de reCAPTCHA
 async function verifyRecaptcha(token: string) {
   const secretKey = process.env.RECAPTCHA_SECRET_KEY

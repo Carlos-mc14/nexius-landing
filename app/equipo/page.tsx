@@ -1,6 +1,6 @@
 import Image from "next/image"
 import Link from "next/link"
-import { Github, Globe, Linkedin, Twitter } from "lucide-react"
+import { Github, Globe, Linkedin, Twitter, Instagram } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 
@@ -10,13 +10,12 @@ const teamMembers = [
     id: 1,
     name: "Carlos Mori",
     position: "CEO / Fundador",
-    bio: "Especialista en desarrollo de plataformas multiplataformas.",
+    bio: "Especialista en desarrollo de soluciones multiplataforma.",
     image: "/placeholder.svg?height=400&width=400&text=AR",
     links: {
-      portfolio: "https://ejemplo.com/ana",
-      linkedin: "https://linkedin.com/in/ana-rodriguez",
-      twitter: "https://twitter.com/ana_rodriguez",
-      github: "https://github.com/ana-rodriguez",
+      linkedin: "https://www.linkedin.com/in/carlos-yomarthy-mori-carahuanco-85676a260/",
+      github: "https://github.com/Carlos-mc14",
+      instagram: "https://www.instagram.com/randiu.14/",
     },
   },
   {
@@ -26,9 +25,8 @@ const teamMembers = [
     bio: "Especialista en diseño de interfaces y experiencia de usuario. Ha trabajado en proyectos para empresas de tecnología y startups.",
     image: "/placeholder.svg?height=400&width=400&text=CM",
     links: {
-      portfolio: "https://ejemplo.com/carlos",
-      linkedin: "https://linkedin.com/in/carlos-mendez",
-      github: "https://github.com/carlos-mendez",
+      portfolio: "https://nexius.lat/equipo/melanie-tavara",
+      linkedin: "https://www.linkedin.com/in/melanie-t%C3%A1vara-ccapali-1469b6318/",
     },
   },
   {
@@ -38,9 +36,9 @@ const teamMembers = [
     bio: "Se parte de nuestro equipo y ayuda a transformar la tecnología en soluciones innovadoras.",
     image: "/placeholder.svg?height=400&width=400&text=LS",
     links: {
-      portfolio: "https://ejemplo.com/laura",
-      linkedin: "https://linkedin.com/in/laura-sanchez",
-      twitter: "https://twitter.com/laura_sanchez",
+      portfolio: "",
+      linkedin: "",
+      twitter: "",
     },
   },
 ]
@@ -103,6 +101,14 @@ export default function TeamPage() {
                           <Button variant="ghost" size="icon" className="h-8 w-8">
                             <Twitter className="h-4 w-4" />
                             <span className="sr-only">Twitter</span>
+                          </Button>
+                        </Link>
+                      )}
+                      {member.links.instagram && (
+                        <Link href={member.links.instagram} target="_blank" rel="noopener noreferrer">
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Instagram className="h-4 w-4" />
+                            <span className="sr-only">Instagram</span>
                           </Button>
                         </Link>
                       )}

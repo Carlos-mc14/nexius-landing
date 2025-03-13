@@ -93,36 +93,3 @@ body {
   }
 }
 
-/* Añadir al final del archivo globals.css */
-
-/* Estilos para asegurar que el menú móvil siempre sea visible */
-body.menu-open {
-  overflow: hidden;
-  position: fixed;
-  width: 100%;
-}
-
-/* Aumentar la especificidad para el menú móvil */
-.mobile-menu-overlay {
-  position: fixed !important;
-  inset: 0 !important;
-  background-color: white !important;
-  z-index: 9999 !important;
-  overflow-y: auto !important;
-}
-
-/* Asegurar que los enlaces del menú móvil sean visibles */
-.mobile-menu-overlay a {
-  display: block !important;
-  padding: 0.75rem 1rem !important;
-  margin-bottom: 0.5rem !important;
-  background-color: #f3f4f6 !important;
-  border-radius: 0.375rem !important;
-  color: #111827 !important;
-  font-weight: 500 !important;
-}
-
-.mobile-menu-overlay a:hover {
-  background-color: #e5e7eb !important;
-}
-

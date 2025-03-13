@@ -4,6 +4,7 @@ import Navbar from "@/components/navbar"
 import { RecaptchaProvider } from "@/components/recaptcha-provider"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
+import { Github, Globe, Linkedin, Twitter, Instagram, Facebook, Phone} from "lucide-react"
 import Link from "next/link"
 import "./globals.css"
 
@@ -38,30 +39,27 @@ export default function RootLayout({
                   <p className="text-gray-400">Soluciones digitales que transforman tu negocio.</p>
                 </div>
                 <div className="space-y-4">
-                  <h3 className="text-lg font-bold">Servicios</h3>
-                  <ul className="space-y-2">
-                    <li>
-                      <Link href="#" className="text-gray-400 hover:text-white">
-                        Diseño Web
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="#" className="text-gray-400 hover:text-white">
-                        Sistemas para Restaurantes
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="#" className="text-gray-400 hover:text-white">
-                        Sistemas para Hoteles
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="#" className="text-gray-400 hover:text-white">
-                        Desarrollo a Medida
-                      </Link>
-                    </li>
-                  </ul>
+                  <h3 className="text-lg font-bold">Nuestras redes</h3>
+                  <div className="space-y-2">
+                    <a href="https://linkedin.com/in/asdasd" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-3 text-gray-400 hover:text-white">
+                      <Linkedin size={20} />
+                      <span>Linkedin</span>
+                    </a>
+                    <a href="https://github.com/asdasd" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-3 text-gray-400 hover:text-white">
+                      <Github size={20} />
+                      <span>Github</span>
+                    </a>
+                    <a href="https://instagram.com/asdasd" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-3 text-gray-400 hover:text-white">
+                      <Facebook size={20} />
+                      <span>Facebook</span>
+                    </a>
+                    <a href="https://instagram.com/asdasd" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-3 text-gray-400 hover:text-white">
+                      <Phone size={20} />
+                      <span>WhatsApp</span>
+                    </a>
+                  </div>
                 </div>
+
                 <div className="space-y-4">
                   <h3 className="text-lg font-bold">Empresa</h3>
                   <ul className="space-y-2">
