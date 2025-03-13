@@ -14,7 +14,7 @@ const validateTrelloEnv = () => {
   export async function getTrelloProjects() {
     try {
       // Verificar si estamos en modo de desarrollo o si faltan variables de entorno
-      if (process.env.NODE_ENV === "development" && !validateTrelloEnv()) {
+      if (process.env.NODE_ENV !== "development" || !validateTrelloEnv()) {
         console.info("🔍 Usando datos simulados para Trello en desarrollo")
         return getMockTrelloProjects()
       }
@@ -69,8 +69,8 @@ const validateTrelloEnv = () => {
   
         // Extraer URLs de repositorio y demo del texto de la descripción usando expresiones regulares
         // Buscar enlaces en formato markdown: [texto](url)
-        const repoUrlMatch = card.desc?.match(/[Rr]epo(?:sitorio)?:?\s*\[(?:[^\]]+)\]$$([^)]+)$$/i)
-        const demoUrlMatch = card.desc?.match(/[Dd]emo:?\s*\[(?:[^\]]+)\]$$([^)]+)$$/i)
+        const repoUrlMatch = card.desc?.match(/[Rr]epo(?:sitorio)?:?\s*\[(?:[^\]]+)\]\(([^)]+)\)/i)
+        const demoUrlMatch = card.desc?.match(/[Dd]emo:?\s*\[(?:[^\]]+)\]\(([^)]+)\)/i)
   
         // Si no encuentra en formato markdown, buscar URLs directas
         const fallbackRepoMatch = !repoUrlMatch && card.desc?.match(/[Rr]epo(?:sitorio)?:?\s*(https?:\/\/[^\s\n]+)/i)
@@ -85,8 +85,8 @@ const validateTrelloEnv = () => {
           dueDate: card.due,
           labels: card.labels || [],
           members: card.members || [],
-          repoUrl: repoUrlMatch ? repoUrlMatch[1] : fallbackRepoMatch ? fallbackRepoMatch[1] : null,
-          demoUrl: demoUrlMatch ? demoUrlMatch[1] : fallbackDemoMatch ? fallbackDemoMatch[1] : null,
+          repoUrl: repoUrlMatch ? repoUrlMatch[1] : (fallbackRepoMatch ? fallbackRepoMatch[1] : null),
+          demoUrl: demoUrlMatch ? demoUrlMatch[1] : (fallbackDemoMatch ? fallbackDemoMatch[1] : ""),
         }
       })
     } catch (error) {

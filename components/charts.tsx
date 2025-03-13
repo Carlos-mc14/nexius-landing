@@ -15,24 +15,32 @@ interface ChartData {
 export function PieChart({ data }: { data: ChartData }) {
   const chartRef = useRef<HTMLCanvasElement>(null)
   const chartInstance = useRef<Chart | null>(null)
-  
+
   useEffect(() => {
     if (!chartRef.current) return
-    
+
     // Destroy previous chart instance if it exists
     if (chartInstance.current) {
       chartInstance.current.destroy()
     }
-    
+
     const ctx = chartRef.current.getContext("2d")
     if (!ctx) return
-    
+
     // Default colors if not provided
     const colors = data.colors || [
-      "#4f46e5", "#0ea5e9", "#10b981", "#f59e0b", "#ef4444",
-      "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16", "#f97316"
+      "#4f46e5",
+      "#0ea5e9",
+      "#10b981",
+      "#f59e0b",
+      "#ef4444",
+      "#8b5cf6",
+      "#ec4899",
+      "#06b6d4",
+      "#84cc16",
+      "#f97316",
     ]
-    
+
     chartInstance.current = new Chart(ctx, {
       type: "pie",
       data: {
@@ -70,32 +78,32 @@ export function PieChart({ data }: { data: ChartData }) {
         },
       },
     })
-    
+
     return () => {
       if (chartInstance.current) {
         chartInstance.current.destroy()
       }
     }
   }, [data])
-  
+
   return <canvas ref={chartRef} />
 }
 
 export function BarChart({ data, horizontal = false }: { data: ChartData; horizontal?: boolean }) {
   const chartRef = useRef<HTMLCanvasElement>(null)
   const chartInstance = useRef<Chart | null>(null)
-  
+
   useEffect(() => {
     if (!chartRef.current) return
-    
+
     // Destroy previous chart instance if it exists
     if (chartInstance.current) {
       chartInstance.current.destroy()
     }
-    
+
     const ctx = chartRef.current.getContext("2d")
     if (!ctx) return
-    
+
     chartInstance.current = new Chart(ctx, {
       type: "bar",
       data: {
@@ -125,32 +133,32 @@ export function BarChart({ data, horizontal = false }: { data: ChartData; horizo
         },
       },
     })
-    
+
     return () => {
       if (chartInstance.current) {
         chartInstance.current.destroy()
       }
     }
   }, [data, horizontal])
-  
+
   return <canvas ref={chartRef} />
 }
 
 export function LineChart({ data }: { data: ChartData }) {
   const chartRef = useRef<HTMLCanvasElement>(null)
   const chartInstance = useRef<Chart | null>(null)
-  
+
   useEffect(() => {
     if (!chartRef.current) return
-    
+
     // Destroy previous chart instance if it exists
     if (chartInstance.current) {
       chartInstance.current.destroy()
     }
-    
+
     const ctx = chartRef.current.getContext("2d")
     if (!ctx) return
-    
+
     chartInstance.current = new Chart(ctx, {
       type: "line",
       data: {
@@ -184,13 +192,14 @@ export function LineChart({ data }: { data: ChartData }) {
         },
       },
     })
-    
+
     return () => {
       if (chartInstance.current) {
         chartInstance.current.destroy()
       }
     }
   }, [data])
-  
+
   return <canvas ref={chartRef} />
 }
+
