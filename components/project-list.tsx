@@ -3,11 +3,11 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { ExternalLink, Github } from 'lucide-react'
+import { ExternalLink, Github } from "lucide-react"
 
 export default async function ProjectList({ projectsPromise }: { projectsPromise: Promise<any[]> }) {
   const projects = await projectsPromise
-  
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -18,7 +18,7 @@ export default async function ProjectList({ projectsPromise }: { projectsPromise
           </Button>
         </Link>
       </div>
-      
+
       <div className="grid gap-6">
         {projects.map((project) => (
           <Card key={project.id}>
@@ -40,16 +40,16 @@ export default async function ProjectList({ projectsPromise }: { projectsPromise
                   </div>
                   <Progress value={project.progress} className="h-2" />
                 </div>
-                
+
                 {project.labels && project.labels.length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {project.labels.map((label: any) => (
                       <span
                         key={label.id}
                         className="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium"
-                        style={{ 
-                          backgroundColor: label.color ? `${label.color}20` : '#f3f4f6',
-                          color: label.color || '#6b7280'
+                        style={{
+                          backgroundColor: getColorForLabel(label.color),
+                          color: getLabelTextColor(label.color),
                         }}
                       >
                         {label.name}
@@ -57,7 +57,7 @@ export default async function ProjectList({ projectsPromise }: { projectsPromise
                     ))}
                   </div>
                 )}
-                
+
                 {project.members && project.members.length > 0 && (
                   <div>
                     <p className="text-sm text-muted-foreground mb-2">Equipo asignado:</p>
@@ -96,7 +96,7 @@ export default async function ProjectList({ projectsPromise }: { projectsPromise
             </CardFooter>
           </Card>
         ))}
-        
+
         {projects.length === 0 && (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-10">
@@ -124,3 +124,28 @@ function getStatusVariant(status: string): "default" | "secondary" | "destructiv
       return "outline"
   }
 }
+
+// Función para convertir los colores de Trello a colores hexadecimales
+function getColorForLabel(color: string): string {
+  const colorMap: Record<string, string> = {
+    green: "#61bd4f",
+    yellow: "#f2d600",
+    orange: "#ff9f1a",
+    red: "#eb5a46",
+    purple: "#c377e0",
+    blue: "#0079bf",
+    sky: "#00c2e0",
+    lime: "#51e898",
+    pink: "#ff78cb",
+    black: "#344563",
+  }
+
+  return colorMap[color] ? `${colorMap[color]}20` : "#f3f4f6"
+}
+
+// Función para determinar el color del texto basado en el color de fondo
+function getLabelTextColor(color: string): string {
+  const darkColors = ["blue", "purple", "black"]
+  return darkColors.includes(color) ? "#ffffff" : "#333333"
+}
+
