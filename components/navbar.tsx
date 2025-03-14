@@ -40,7 +40,7 @@ export default function Navbar() {
   const navItems = [
     { name: "Inicio", href: "/" },
     { name: "Servicios", href: "/#servicios" },
-    { name: "Portafolio", href: "/#portafolio" },
+    { name: "Portafolio", href: "/portafolio" },
     { name: "Equipo", href: "/equipo" },
     { name: "Contacto", href: "/#contacto" },
   ];
@@ -129,11 +129,11 @@ export default function Navbar() {
                 </li>
               ))}
               <li className="mt-4">
-                <button className="hidden md:inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
-                  <Link href="/#contacto" onClick={() => setIsMobileMenuOpen(false)}>
-                    Solicitar cotización
-                  </Link>
-                </button>
+              <button className="flex h-9 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                <Link href="/#contacto" onClick={() => setIsMobileMenuOpen(false)}>
+                  Solicitar cotización
+                </Link>
+              </button>
               </li>
             </ul>
           </div>

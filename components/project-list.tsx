@@ -12,7 +12,7 @@ export default async function ProjectList({ projectsPromise }: { projectsPromise
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h3 className="text-xl font-semibold">Proyectos en Desarrollo</h3>
-        <Link href="https://trello.com/b/yourboard" target="_blank" rel="noopener noreferrer">
+        <Link href="https://trello.com/b/4oGOuBX1/nexius-proyectos" target="_blank" rel="noopener noreferrer">
           <Button variant="outline" size="sm">
             Ver en Trello <ExternalLink className="ml-2 h-4 w-4" />
           </Button>
@@ -46,7 +46,7 @@ export default async function ProjectList({ projectsPromise }: { projectsPromise
                     {project.labels.map((label: any) => (
                       <span
                         key={label.id}
-                        className="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium"
+                        className="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium text-black"
                         style={{
                           backgroundColor: getColorForLabel(label.color),
                           color: getLabelTextColor(label.color),
@@ -132,7 +132,7 @@ function getColorForLabel(color: string): string {
     yellow: "#f2d600",
     orange: "#ff9f1a",
     red: "#eb5a46",
-    purple: "#c377e0",
+    purple: "#b60af7",
     blue: "#0079bf",
     sky: "#00c2e0",
     lime: "#51e898",
@@ -143,9 +143,9 @@ function getColorForLabel(color: string): string {
   return colorMap[color] ? `${colorMap[color]}20` : "#f3f4f6"
 }
 
-// Función para determinar el color del texto basado en el color de fondo
+// Función para determinar el color del texto basado en el color de fondo Backend y Completado
 function getLabelTextColor(color: string): string {
-  const darkColors = ["blue", "purple", "black"]
+  const darkColors = ["black"]
   return darkColors.includes(color) ? "#ffffff" : "#333333"
 }
 

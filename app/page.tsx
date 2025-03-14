@@ -4,6 +4,8 @@ import { ArrowRight, CheckCircle, Code, Database, Globe, MessageSquare, Phone, S
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import ContactForm from "@/components/contact-form"
+import { Suspense } from "react"
+import CompletedProjects from "@/components/completed-projects"
 
 export default function Home() {
   return (
@@ -143,26 +145,30 @@ export default function Home() {
               </p>
             </div>
           </div>
-          <div className="mx-auto grid max-w-5xl grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3 mt-12">
-            {[1, 2, 3, 4, 5, 6].map((item) => (
-              <div key={item} className="overflow-hidden rounded-lg border bg-white shadow-sm">
-                <Image
-                  src={`/placeholder.svg?height=300&width=400&text=Proyecto ${item}`}
-                  width={400}
-                  height={300}
-                  alt={`Proyecto ${item}`}
-                  className="aspect-video object-cover w-full"
-                />
-                <div className="p-4">
-                  <h3 className="font-semibold text-lg">Proyecto {item}</h3>
-                  <p className="text-sm text-gray-500 mt-1">
-                    {item % 2 === 0
-                      ? "Sistema de gestión para restaurante con módulos de pedidos, inventario y fidelización."
-                      : "Sitio web corporativo con integración de CRM y sistema de reservas online."}
-                  </p>
-                </div>
+
+          <Suspense
+            fallback={
+              <div className="mx-auto grid max-w-5xl grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3 mt-12">
+                {Array.from({ length: 3 }).map((_, index) => (
+                  <div key={index} className="overflow-hidden rounded-lg border bg-white shadow-sm animate-pulse">
+                    <div className="aspect-video w-full bg-gray-200"></div>
+                    <div className="p-4 space-y-2">
+                      <div className="h-5 bg-gray-200 rounded w-3/4"></div>
+                      <div className="h-4 bg-gray-200 rounded w-full"></div>
+                      <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            }
+          >
+            <CompletedProjects />
+          </Suspense>
+
+          <div className="flex justify-center mt-8">
+            <Link href="/portafolio">
+              <Button className="w-full">Ver más proyectos</Button>
+            </Link>
           </div>
         </div>
       </section>

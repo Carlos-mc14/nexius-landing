@@ -142,14 +142,14 @@ export async function getCloudflareAnalytics() {
 
     // Verificar si hay errores en la respuesta
     if (result.errors) {
-      console.error("Errores en la respuesta GraphQL:", result.errors)
+      //console.error("Errores en la respuesta GraphQL:", result.errors)
       throw new Error("Error en la consulta GraphQL de Cloudflare")
     }
 
     // Procesar los datos recibidos
     return processCloudflareData(result.data)
   } catch (error) {
-    console.error("Error fetching Cloudflare analytics:", error)
+    //console.error("Error fetching Cloudflare analytics:", error)
     // Fallback a datos simulados en caso de error
     return getMockCloudflareAnalytics()
   }
