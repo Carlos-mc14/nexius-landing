@@ -81,7 +81,7 @@ export default async function PortfolioPage() {
                   <CardContent>
                     <div className="flex items-center gap-2">
                       <Clock className="h-5 w-5 text-muted-foreground" />
-                      <span className="text-2xl font-bold">4.5 semanas</span>
+                      <span className="text-2xl font-bold">3 semanas</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -93,7 +93,7 @@ export default async function PortfolioPage() {
                   <CardContent>
                     <div className="flex items-center gap-2">
                       <Users className="h-5 w-5 text-muted-foreground" />
-                      <span className="text-2xl font-bold">8 personas</span>
+                      <span className="text-2xl font-bold">2 personas</span>
                     </div>
                   </CardContent>
                 </Card>

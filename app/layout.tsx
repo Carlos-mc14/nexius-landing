@@ -41,7 +41,7 @@ export default function RootLayout({
                 <div className="space-y-4">
                   <h3 className="text-lg font-bold">Nuestras redes</h3>
                   <div className="space-y-2">
-                    <a href="https://linkedin.com/in/asdasd" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-3 text-gray-400 hover:text-white">
+                    <a href="https://www.linkedin.com/company/nexiuslat/" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-3 text-gray-400 hover:text-white">
                       <Linkedin size={20} />
                       <span>Linkedin</span>
                     </a>

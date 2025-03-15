@@ -39,7 +39,7 @@ export default function Home() {
             </div>
             <div className="mx-auto lg:mx-0 relative">
               <Image
-                src="/placeholder.svg?height=500&width=500"
+                src="/nexius-logo.svg?height=500&width=500"
                 width={500}
                 height={500}
                 alt="Dashboard de software"
