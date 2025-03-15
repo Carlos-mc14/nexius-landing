@@ -36,7 +36,6 @@ export interface SpotifyTrack {
 }
 
 // Get access token using the refresh token
-// Modifica la función getAccessToken en lib/spotify.ts
 async function getAccessToken(): Promise<string> {
   try {
     if (!validateSpotifyEnv()) {
@@ -90,7 +89,7 @@ export async function getCurrentlyPlayingTrack(): Promise<SpotifyTrack | null> {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
-      next: { revalidate: 300 }, // Revalidate every 5 minutes
+      next: { revalidate: 600 }, // Revalidate every 5 minutes
     })
 
     // If 204 No Content is returned, no track is currently playing

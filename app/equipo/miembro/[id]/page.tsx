@@ -11,8 +11,6 @@ import { getDisplayTrackForUser } from "@/lib/spotify"
 import SpotifyTrackPlayer from "@/components/spotify-track"
 import TechStack from "@/components/tech-stack"
 
-export const revalidate = 60 // Revalidate this page every minute
-
 interface MemberProfilePageProps {
   params: {
     id: string
@@ -20,9 +18,9 @@ interface MemberProfilePageProps {
 }
 
 export default async function MemberProfilePage({ params }: MemberProfilePageProps) {
-  // Create a local variable for the ID to avoid using params.id directly
-  const memberId = params.id
-  const member = await getTeamMemberById(memberId)
+  // Await params before accessing the id property
+  const { id } = await params;
+  const member = await getTeamMemberById(id);
 
   if (!member) {
     notFound()

@@ -33,7 +33,7 @@ export async function getTrelloProjects() {
     // Realizar la petición a la API de Trello
     const response = await fetch(
       `https://api.trello.com/1/boards/${boardId}/cards?key=${apiKey}&token=${token}&fields=name,desc,due,labels,idMembers&members=true&member_fields=fullName,initials&checklists=all`,
-      { next: { revalidate: 1 } }, // Revalidar datos cada hora
+      { next: { revalidate: 3600 } }, // Revalidar datos cada hora
     )
 
     if (!response.ok) {
@@ -86,8 +86,8 @@ export async function getTrelloProjects() {
 
       // Extraer URLs de repositorio y demo del texto de la descripción usando expresiones regulares
       // Buscar enlaces en formato markdown: [texto](url)
-      const repoUrlMatch = card.desc?.match(/[Rr]epo(?:sitorio)?:?\s*\[(?:[^\]]+)\]$$([^)]+)$$/i)
-      const demoUrlMatch = card.desc?.match(/[Dd]emo:?\s*\[(?:[^\]]+)\]$$([^)]+)$$/i)
+      const repoUrlMatch = card.desc?.match(/[Rr]epo(?:sitorio)?:?\s*\[(?:[^\]]+)\]([^)]+)/i)
+      const demoUrlMatch = card.desc?.match(/[Dd]emo:?\s*\[(?:[^\]]+)\]([^)]+)/i)
 
       // Si no encuentra en formato markdown, buscar URLs directas
       const fallbackRepoMatch = !repoUrlMatch && card.desc?.match(/[Rr]epo(?:sitorio)?:?\s*(https?:\/\/[^\s\n]+)/i)
