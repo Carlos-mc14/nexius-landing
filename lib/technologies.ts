@@ -1,0 +1,25 @@
+// Available technologies for team members
+
+export const availableTechnologies = [
+  { name: "React", icon: "SiReact" },
+  { name: "Next.js", icon: "SiNextdotjs" },
+  { name: "TypeScript", icon: "SiTypescript" },
+  { name: "JavaScript", icon: "SiJavascript" },
+  { name: "Node.js", icon: "SiNodedotjs" },
+  { name: "Tailwind CSS", icon: "SiTailwindcss" },
+  { name: "Python", icon: "SiPython" },
+  { name: "Django", icon: "SiDjango" },
+  { name: "Figma", icon: "SiFigma" },
+  { name: "Photoshop", icon: "SiAdobephotoshop" },
+  { name: "Illustrator", icon: "SiAdobeillustrator" },
+  { name: "MongoDB", icon: "SiMongodb" },
+  { name: "PostgreSQL", icon: "SiPostgresql" },
+  { name: "Docker", icon: "SiDocker" },
+  { name: "Redis", icon: "SiRedis" },
+  { name: "Ubuntu", icon: "SiUbuntu" },
+  { name: "MySQL", icon: "SiMysql" },
+  { name: "Premiere Pro", icon: "SiAdobepremierepro" },
+  { name: "InDesign", icon: "SiAdobeindesign" },
+  { name: "After Effects", icon: "SiAdobeaftereffects" },
+  { name: "Cinema 4D", icon: "SiCinema4D" },
+]

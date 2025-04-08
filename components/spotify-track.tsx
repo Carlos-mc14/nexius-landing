@@ -30,7 +30,7 @@ export default function SpotifyTrackPlayer({ track: initialTrack, userId }: Spot
 
       const response = await fetch(url, {
         cache: "no-store",
-        next: { revalidate: 0 },
+        next: { revalidate: 210 },
       })
 
       if (!response.ok) {

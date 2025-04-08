@@ -27,3 +27,7 @@ yarn-error.log*
 next-env.d.ts
 # Local Netlify folder
 .netlify
+
+#zip & rar
+*.zip
+*.rar

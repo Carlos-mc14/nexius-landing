@@ -6,8 +6,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import ContactForm from "@/components/contact-form"
 import { Suspense } from "react"
 import CompletedProjects from "@/components/completed-projects"
+import { getHomepageContent } from "@/lib/homepage"
 
-export default function Home() {
+// Disable caching for this page to always show the latest content
+export const revalidate = 0
+
+export default async function Home() {
+  // Fetch homepage content
+  const homepageContent = await getHomepageContent()
+
+  // Destructure sections for easier access
+  const { hero, services, testimonials, whyChooseUs } = homepageContent
+
   return (
     <main className="flex min-h-screen flex-col">
       {/* Hero Section */}
@@ -16,30 +26,27 @@ export default function Home() {
           <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
             <div className="flex flex-col justify-center space-y-4">
               <div className="space-y-2">
-                <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
-                  Soluciones digitales que transforman tu negocio
-                </h1>
-                <p className="max-w-[600px] text-gray-300 md:text-xl">
-                  Desarrollamos software a medida, sitios web y sistemas especializados para restaurantes, hoteles y
-                  más.
-                </p>
+                <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">{hero.title}</h1>
+                <p className="max-w-[600px] text-gray-300 md:text-xl">{hero.subtitle}</p>
               </div>
               <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                <Link href="#contacto">
+                <Link href={hero.primaryButtonUrl}>
                   <Button className="bg-primary hover:bg-primary/90">
-                    Solicitar cotización <ArrowRight className="ml-2 h-4 w-4" />
+                    {hero.primaryButtonText} <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>
-                <Link href="#servicios">
-                  <Button variant="outline" className="border-white text-black">
-                    Nuestros servicios
-                  </Button>
-                </Link>
+                {hero.secondaryButtonText && (
+                  <Link href={hero.secondaryButtonUrl || "#"}>
+                    <Button variant="outline" className="border-white text-black">
+                      {hero.secondaryButtonText}
+                    </Button>
+                  </Link>
+                )}
               </div>
             </div>
             <div className="mx-auto lg:mx-0 relative">
               <Image
-                src="/nexius-logo.svg?height=500&width=500"
+                src={hero.image || "/placeholder.svg"}
                 width={500}
                 height={500}
                 alt="Dashboard de software"
@@ -63,73 +70,17 @@ export default function Home() {
             </div>
           </div>
           <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 mt-12">
-            <Card>
-              <CardHeader className="flex flex-row items-center gap-4 pb-2">
-                <Globe className="h-8 w-8 text-primary" />
-                <CardTitle>Diseño Web</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-base">
-                  Sitios web modernos, responsivos y optimizados para SEO que convierten visitantes en clientes.
-                </CardDescription>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center gap-4 pb-2">
-                <Server className="h-8 w-8 text-primary" />
-                <CardTitle>Sistemas para Restaurantes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-base">
-                  Software de gestión completo: pedidos, inventario, reservas y fidelización de clientes.
-                </CardDescription>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center gap-4 pb-2">
-                <Database className="h-8 w-8 text-primary" />
-                <CardTitle>Sistemas para Hoteles</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-base">
-                  Gestión de reservas, check-in/out, facturación y experiencia del huésped optimizada.
-                </CardDescription>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center gap-4 pb-2">
-                <Code className="h-8 w-8 text-primary" />
-                <CardTitle>Desarrollo a Medida</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-base">
-                  Soluciones personalizadas que se adaptan perfectamente a los procesos únicos de tu empresa.
-                </CardDescription>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center gap-4 pb-2">
-                <Phone className="h-8 w-8 text-primary" />
-                <CardTitle>Apps Móviles</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-base">
-                  Aplicaciones nativas e híbridas para iOS y Android que conectan con tus clientes donde estén.
-                </CardDescription>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center gap-4 pb-2">
-                <MessageSquare className="h-8 w-8 text-primary" />
-                <CardTitle>Soporte Técnico</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-base">
-                  Asistencia continua, mantenimiento y actualizaciones para mantener tus sistemas funcionando
-                  perfectamente.
-                </CardDescription>
-              </CardContent>
-            </Card>
+            {services.map((service: any) => (
+              <Card key={service.id}>
+                <CardHeader className="flex flex-row items-center gap-4 pb-2">
+                  {getIconComponent(service.icon, "h-8 w-8 text-primary")}
+                  <CardTitle>{service.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-base">{service.description}</CardDescription>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
@@ -187,24 +138,8 @@ export default function Home() {
             </div>
           </div>
           <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 mt-12">
-            {[
-              {
-                name: "María Rodríguez",
-                company: "Restaurante El Sabor",
-                text: "El sistema de gestión que implementaron revolucionó nuestro restaurante. Ahora procesamos pedidos más rápido y tenemos un control total del inventario.",
-              },
-              {
-                name: "Carlos Méndez",
-                company: "Hotel Vista Mar",
-                text: "Gracias a su sistema de reservas, hemos aumentado nuestra ocupación en un 30%. La interfaz es intuitiva tanto para nuestro personal como para los clientes.",
-              },
-              {
-                name: "Laura Sánchez",
-                company: "Tienda Online ModoFashion",
-                text: "Nuestra tienda online ha multiplicado las ventas desde que renovamos el sitio web. La experiencia de compra es excelente y la gestión de inventario es automática.",
-              },
-            ].map((testimonial, index) => (
-              <Card key={index} className="text-left">
+            {testimonials.map((testimonial: any) => (
+              <Card key={testimonial.id} className="text-left">
                 <CardContent className="pt-6">
                   <div className="flex items-start gap-4">
                     <div className="rounded-full bg-gray-100 p-2">
@@ -251,37 +186,8 @@ export default function Home() {
             </div>
           </div>
           <div className="mx-auto grid max-w-5xl grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3 mt-12">
-            {[
-              {
-                title: "Experiencia Comprobada",
-                description:
-                  "Más de 10 clientes satisfechos con proyectos exitosos en diversos sectores de la industria.",
-              },
-              {
-                title: "Soluciones a Medida",
-                description: "Cada proyecto se adapta perfectamente a las necesidades específicas de tu negocio.",
-              },
-              {
-                title: "Tecnología de Vanguardia",
-                description:
-                  "Utilizamos las últimas tecnologías para garantizar sistemas rápidos, seguros y escalables.",
-              },
-              {
-                title: "Soporte Continuo",
-                description:
-                  "Ofrecemos asistencia técnica permanente para asegurar el funcionamiento óptimo de tus sistemas.",
-              },
-              {
-                title: "Enfoque en Resultados",
-                description:
-                  "Nos comprometemos con el éxito de tu negocio, midiendo el impacto real de nuestras soluciones.",
-              },
-              {
-                title: "Equipo Especializado",
-                description: "Contamos con profesionales certificados en diversas áreas del desarrollo de software.",
-              },
-            ].map((item, index) => (
-              <div key={index} className="flex flex-col items-start gap-2">
+            {whyChooseUs.map((item: any) => (
+              <div key={item.id} className="flex flex-col items-start gap-2">
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-5 w-5 text-primary" />
                   <h3 className="font-semibold text-lg">{item.title}</h3>
@@ -318,7 +224,7 @@ export default function Home() {
                   </div>
                   <div>
                     <p className="font-medium">Teléfono</p>
-                    <p className="text-gray-500">+123 456 7890</p>
+                    <p className="text-gray-500">{homepageContent.contactInfo?.phone || "+123 456 7890"}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
@@ -327,7 +233,7 @@ export default function Home() {
                   </div>
                   <div>
                     <p className="font-medium">Email</p>
-                    <p className="text-gray-500">contacto@nexius.lat</p>
+                    <p className="text-gray-500">{homepageContent.contactInfo?.email || "contacto@nexius.lat"}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
@@ -350,14 +256,19 @@ export default function Home() {
                   </div>
                   <div>
                     <p className="font-medium">Dirección</p>
-                    <p className="text-gray-500">Calle Principal 123, Ciudad, País</p>
+                    <p className="text-gray-500">
+                      {homepageContent.contactInfo?.address || "Calle Principal 123, Ciudad, País"}
+                    </p>
                   </div>
                 </div>
               </div>
               <div className="space-y-2">
                 <h4 className="font-semibold">Síguenos en redes sociales</h4>
                 <div className="flex gap-4">
-                  <Link href="#" className="rounded-full bg-gray-100 p-2 hover:bg-gray-200">
+                  <Link
+                    href={homepageContent.contactInfo?.socialLinks?.facebook || "#"}
+                    className="rounded-full bg-gray-100 p-2 hover:bg-gray-200"
+                  >
                     <svg
                       className="h-5 w-5 text-gray-600"
                       fill="currentColor"
@@ -368,27 +279,41 @@ export default function Home() {
                     </svg>
                     <span className="sr-only">Facebook</span>
                   </Link>
-                  <Link href="#" className="rounded-full bg-gray-100 p-2 hover:bg-gray-200">
+                  <Link
+                    href={homepageContent.contactInfo?.socialLinks?.twitter || "#"}
+                    className="rounded-full bg-gray-100 p-2 hover:bg-gray-200"
+                  >
                     <svg
                       className="h-5 w-5 text-gray-600"
                       fill="currentColor"
                       viewBox="-0.5 0 17 17"
                       xmlns="http://www.w3.org/2000/svg"
                     >
-                      <path d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865z"/>                    </svg>
+                      <path d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865z" />{" "}
+                    </svg>
                     <span className="sr-only">Twitter</span>
                   </Link>
-                  <Link href="#" className="rounded-full bg-gray-100 p-2 hover:bg-gray-200">
+                  <Link
+                    href={homepageContent.contactInfo?.socialLinks?.instagram || "#"}
+                    className="rounded-full bg-gray-100 p-2 hover:bg-gray-200"
+                  >
                     <svg
                       className="h-5 w-5 text-gray-600"
                       fill="currentColor"
                       viewBox="-0.5 0 16 16"
                       xmlns="http://www.w3.org/2000/svg"
                     >
-                      <path d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.9 3.9 0 0 0-1.417.923A3.9 3.9 0 0 0 .42 2.76C.222 3.268.087 3.85.048 4.7.01 5.555 0 5.827 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.827 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.9 3.9 0 0 0 1.416-.923c.445-.445.718-.891.923-1.417.197-.509.332-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.175-1.433-.372-1.941a3.9 3.9 0 0 0-.923-1.417A3.9 3.9 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 7.998 0zm-.717 1.442h.718c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599s.453.546.598.92c.11.281.24.705.275 1.485.039.843.047 1.096.047 3.231s-.008 2.389-.047 3.232c-.035.78-.166 1.203-.275 1.485a2.5 2.5 0 0 1-.599.919c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.276-.843.038-1.096.047-3.232.047s-2.39-.009-3.233-.047c-.78-.036-1.203-.166-1.485-.276a2.5 2.5 0 0 1-.92-.598 2.5 2.5 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.233s.008-2.388.046-3.231c.036-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92s.546-.453.92-.598c.282-.11.705-.24 1.485-.276.738-.034 1.024-.044 2.515-.045zm4.988 1.328a.96.96 0 1 0 0 1.92.96.96 0 0 0 0-1.92m-4.27 1.122a4.109 4.109 0 1 0 0 8.217 4.109 4.109 0 0 0 0-8.217m0 1.441a2.667 2.667 0 1 1 0 5.334 2.667 2.667 0 0 1 0-5.334"/>                    </svg>
+                      <path d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.9 3.9 0 0 0-1.417.923A3.9 3.9 0 0 0 .42 2.76C.222 3.268.087 3.85.048 4.7.01 5.555 0 5.827 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.827 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.9 3.9 0 0 0 1.416-.923c.445-.445.718-.891.923-1.417.197-.509.332-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.175-1.433-.372-1.941a3.9 3.9 0 0 0-.923-1.417A3.9 3.9 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 7.998 0zm-.717 1.442h.718c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599s.453.546.598.92c.11.281.24.705.275 1.485.039.843.047 1.096.047 3.231s-.008 2.389-.047 3.232c-.035.78-.166 1.203-.275 1.485a2.5 2.5 0 0 1-.599.919c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.276-.843.038-1.096.047-3.232.047s-2.39-.009-3.233-.047c-.78-.036-1.203-.166-1.485-.276a2.5 2.5 0 0 1-.92-.598 2.5 2.5 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.233s.008-2.388.046-3.231c.036-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92s.546-.453.92-.598c.282-.11.705-.24 1.485-.276.738-.034 1.024-.044 2.515-.045zm4.988 1.328a.96.96 0 1 0 0 1.92.96.96 0 0 0 0-1.92m-4.27 1.122a4.109 4.109 0 1 0 0 8.217 4.109 4.109 0 0 0 0-8.217m0 1.441a2.667 2.667 0 1 1 0 5.334 2.667 2.667 0 0 1 0-5.334" />{" "}
+                    </svg>
                     <span className="sr-only">Instagram</span>
                   </Link>
-                  <Link href="https://www.linkedin.com/company/nexiuslat/" className="rounded-full bg-gray-100 p-2 hover:bg-gray-200">
+                  <Link
+                    href={
+                      homepageContent.contactInfo?.socialLinks?.linkedin ||
+                      "https://www.linkedin.com/company/nexiuslat/"
+                    }
+                    className="rounded-full bg-gray-100 p-2 hover:bg-gray-200"
+                  >
                     <svg
                       className="h-5 w-5 text-gray-600"
                       fill="currentColor"
@@ -407,4 +332,24 @@ export default function Home() {
       </section>
     </main>
   )
+}
+
+// Helper function to render the correct icon component based on icon name
+function getIconComponent(iconName: string, className: string) {
+  switch (iconName) {
+    case "Globe":
+      return <Globe className={className} />
+    case "Server":
+      return <Server className={className} />
+    case "Database":
+      return <Database className={className} />
+    case "Code":
+      return <Code className={className} />
+    case "Phone":
+      return <Phone className={className} />
+    case "MessageSquare":
+      return <MessageSquare className={className} />
+    default:
+      return <Globe className={className} />
+  }
 }

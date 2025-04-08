@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { getDisplayTrack, getDisplayTrackForUser } from "@/lib/spotify"
 
-export const revalidate = 0 // Disable caching for this route
+export const revalidate = 210 // Disable caching for this route
 
 export async function GET(request: Request) {
   try {
