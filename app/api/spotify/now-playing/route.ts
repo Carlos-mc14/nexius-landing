@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { getDisplayTrack, getDisplayTrackForUser } from "@/lib/spotify"
 
+export const dynamic = "force-dynamic"
 export const revalidate = 210 // Disable caching for this route
 
 export async function GET(request: Request) {
