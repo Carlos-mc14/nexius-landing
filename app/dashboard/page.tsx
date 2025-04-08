@@ -5,6 +5,8 @@ import { Activity, Users, FileText, CheckCircle, Edit } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
+export const dynamic = "force-dynamic"
+
 export default async function DashboardPage() {
   const session = await getSession()
   const stats = await getDashboardStats()

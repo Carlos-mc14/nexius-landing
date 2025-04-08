@@ -8,6 +8,8 @@ import { Plus } from "lucide-react"
 import { DataTable } from "@/components/dashboard/data-table"
 import { columns } from "@/components/dashboard/team/columns"
 
+export const dynamic = "force-dynamic"
+
 export default async function TeamManagementPage() {
   const session = await getSession()
   const canManageTeam = session ? await checkPermission(session.user.id, "team:manage") : false
