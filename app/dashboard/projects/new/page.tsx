@@ -4,6 +4,8 @@ import { getSession } from "@/lib/auth"
 import { checkPermission } from "@/lib/permissions"
 import { redirect } from "next/navigation"
 
+export const dynamic = "force-dynamic"
+
 export default async function NewProjectPage() {
   const session = await getSession()
   if (!session) {

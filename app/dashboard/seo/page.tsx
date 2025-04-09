@@ -2,6 +2,8 @@ import type { Metadata } from "next"
 import { getSeoConfig } from "@/lib/seo"
 import { SeoForm } from "@/components/dashboard/seo/seo-form"
 
+export const dynamic = "force-dynamic"
+
 export const metadata: Metadata = {
   title: "Configuración SEO | Dashboard",
   description: "Gestiona la configuración SEO de tu sitio web",

@@ -8,6 +8,8 @@ import { Plus } from "lucide-react"
 import { DataTable } from "@/components/dashboard/data-table"
 import { columns } from "@/components/dashboard/projects/columns"
 
+export const dynamic = "force-dynamic"
+
 export default async function ProjectsManagementPage() {
   const session = await getSession()
   const canManageProjects = session 
