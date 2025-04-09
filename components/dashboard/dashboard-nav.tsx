@@ -2,99 +2,79 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { Home, LayoutDashboard, Settings, Users, FolderKanban, Search } from "lucide-react"
+
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Users, Settings, User, Home, UserCog } from "lucide-react"
-import { useEffect, useState } from "react"
-import { hasPermission } from "@/lib/auth-client"
+import { buttonVariants } from "@/components/ui/button"
 
 interface DashboardNavProps {
-  user: {
-    id: string
-    name: string
-    email: string
-    role: string
-  }
+  className?: string
 }
 
-export function DashboardNav({ user }: DashboardNavProps) {
+export function DashboardNav({ className }: DashboardNavProps) {
   const pathname = usePathname()
-  const [canEditHomepage, setCanEditHomepage] = useState(false)
-  const [canManageTeam, setCanManageTeam] = useState(false)
-  const [canManageUsers, setCanManageUsers] = useState(false)
-
-  // Verificar permisos al cargar el componente
-  useEffect(() => {
-    async function checkPermissions() {
-      const [homepageEdit, teamManage, usersManage] = await Promise.all([
-        hasPermission("homepage:edit"),
-        hasPermission("team:manage"),
-        hasPermission("users:manage"),
-      ])
-
-      setCanEditHomepage(homepageEdit)
-      setCanManageTeam(teamManage)
-      setCanManageUsers(usersManage)
-    }
-
-    checkPermissions()
-  }, [])
 
   const navItems = [
     {
       title: "Dashboard",
       href: "/dashboard",
-      icon: LayoutDashboard,
+      icon: <LayoutDashboard className="mr-2 h-4 w-4" />,
+      pattern: /^\/dashboard$/,
     },
     {
-      title: "Página Principal",
+      title: "Página de inicio",
       href: "/dashboard/homepage",
-      icon: Home,
-      requiresPermission: canEditHomepage,
+      icon: <Home className="mr-2 h-4 w-4" />,
+      pattern: /^\/dashboard\/homepage/,
     },
     {
       title: "Equipo",
       href: "/dashboard/team",
-      icon: Users,
-      requiresPermission: canManageTeam,
+      icon: <Users className="mr-2 h-4 w-4" />,
+      pattern: /^\/dashboard\/team/,
+    },
+    {
+      title: "Proyectos",
+      href: "/dashboard/projects",
+      icon: <FolderKanban className="mr-2 h-4 w-4" />,
+      pattern: /^\/dashboard\/projects/,
     },
     {
       title: "Usuarios",
       href: "/dashboard/users",
-      icon: UserCog,
-      requiresPermission: canManageUsers,
+      icon: <Users className="mr-2 h-4 w-4" />,
+      pattern: /^\/dashboard\/users/,
     },
     {
-      title: "Mi Perfil",
-      href: "/dashboard/profile",
-      icon: User,
+      title: "SEO",
+      href: "/dashboard/seo",
+      icon: <Search className="mr-2 h-4 w-4" />,
+      pattern: /^\/dashboard\/seo/,
     },
     {
       title: "Configuración",
       href: "/dashboard/settings",
-      icon: Settings,
+      icon: <Settings className="mr-2 h-4 w-4" />,
+      pattern: /^\/dashboard\/settings/,
     },
   ]
 
   return (
-    <nav className="grid items-start gap-2">
-      {navItems.map((item) => {
-        // Skip items that require permissions the user doesn't have
-        if (item.hasOwnProperty("requiresPermission") && !item.requiresPermission) return null
-
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={cn(
-              "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
-              pathname === item.href ? "bg-accent text-accent-foreground" : "transparent",
-            )}
-          >
-            <item.icon className="h-4 w-4" />
-            <span>{item.title}</span>
-          </Link>
-        )
-      })}
+    <nav className={cn("flex flex-col space-y-1", className)}>
+      {navItems.map((item) => (
+        <Link
+          key={item.href}
+          href={item.href}
+          className={cn(
+            buttonVariants({ variant: "ghost" }),
+            item.pattern.test(pathname) ? "bg-muted hover:bg-muted" : "hover:bg-transparent hover:underline",
+            "justify-start",
+          )}
+        >
+          {item.icon}
+          {item.title}
+        </Link>
+      ))}
     </nav>
   )
 }

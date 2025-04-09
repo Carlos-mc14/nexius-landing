@@ -22,7 +22,7 @@ export async function getTeamMembers(): Promise<TeamMember[]> {
         ...member,
       })) as TeamMember[]
     },
-    3600, // Cache for 1 hour
+    60, // Cache for 1 minute (reduced from 3600 to see changes faster)
   )
 }
 
@@ -49,7 +49,7 @@ export async function getTeamMemberById(id: string): Promise<TeamMember | null> 
         return null
       }
     },
-    3600, // Cache for 1 hour
+    60, // Cache for 1 minute
   )
 }
 
@@ -76,7 +76,7 @@ export async function getTeamMemberByPublicId(publicId: string): Promise<TeamMem
         return null
       }
     },
-    3600, // Cache for 1 hour
+    60, // Cache for 1 minute
   )
 }
 
@@ -108,8 +108,7 @@ export async function createTeamMember(data: Partial<TeamMember>): Promise<TeamM
     // Invalidate cache
     await invalidateCache(CACHE_KEY_ALL)
 
-    const { insertedId } = result
-    return { id: insertedId.toString(), ...memberData } as TeamMember
+    return { id: result.insertedId.toString(), ...memberData } as TeamMember
   } catch (error) {
     console.error("Error creating team member:", error)
     throw error

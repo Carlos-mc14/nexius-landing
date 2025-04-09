@@ -3,47 +3,18 @@ import Link from "next/link"
 import { Github, Globe, Linkedin, Twitter, Instagram } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { getTeamMembers } from "@/lib/team"
 
-// Datos de ejemplo del equipo - puedes reemplazarlos con información real
-const teamMembers = [
-  {
-    id: "carlos", // Changed from numeric ID to string ID to match the dynamic route
-    name: "Carlos Mori",
-    position: "CEO / Fundador",
-    bio: "Especialista en desarrollo de soluciones multiplataforma.",
-    image: "/placeholder.svg?height=400&width=400&text=AR",
-    links: {
-      linkedin: "https://www.linkedin.com/in/carlos-mori-carahuanco-85676a260/",
-      github: "https://github.com/Carlos-mc14",
-      instagram: "https://www.instagram.com/randiu.14/",
-    },
-  },
-  {
-    id: "melanie", // Changed from numeric ID to string ID to match the dynamic route
-    name: "Melanie Távara",
-    position: "Desarrolladora Grafica",
-    bio: "Especialista en diseño de interfaces y experiencia de usuario. Ha trabajado en proyectos para empresas de tecnología y startups.",
-    image: "/placeholder.svg?height=400&width=400&text=CM",
-    links: {
-      portfolio: "https://nexius.lat/equipo/melanie-tavara",
-      linkedin: "https://www.linkedin.com/in/melanie-t%C3%A1vara-ccapali-1469b6318/",
-    },
-  },
-  {
-    id: "join-us", // Changed from numeric ID to string ID
-    name: "Tu puedes ser el siguiente",
-    position: "",
-    bio: "Se parte de nuestro equipo y ayuda a transformar la tecnología en soluciones innovadoras.",
-    image: "/placeholder.svg?height=400&width=400&text=LS",
-    links: {
-      portfolio: "",
-      linkedin: "",
-      twitter: "",
-    },
-  },
-]
+// Disable caching for this page to always show the latest content
+export const revalidate = 0
 
-export default function TeamPage() {
+export default async function TeamPage() {
+  // Fetch team members from the database
+  const teamMembers = await getTeamMembers()
+
+  // Filter only active members
+  const activeMembers = teamMembers.filter((member) => member.active)
+
   return (
     <main className="flex min-h-screen flex-col">
       {/* Hero Section */}
@@ -67,10 +38,15 @@ export default function TeamPage() {
       <section className="w-full py-12 md:py-24 lg:py-32">
         <div className="container px-4 md:px-6">
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {teamMembers.map((member) => (
+            {activeMembers.map((member) => (
               <Card key={member.id} className="overflow-hidden flex flex-col">
                 <div className="aspect-square relative">
-                  <Image src={member.image || "/placeholder.svg"} alt={member.name} fill className="object-cover" />
+                  <Image
+                    src={member.image || "/placeholder.svg?height=400&width=400"}
+                    alt={member.name}
+                    fill
+                    className="object-cover"
+                  />
                 </div>
                 <CardContent className="p-6 flex flex-col flex-grow">
                   <div className="flex flex-col flex-grow">
@@ -78,7 +54,7 @@ export default function TeamPage() {
                       <h3 className="text-2xl font-bold">{member.name}</h3>
                       <p className="text-sm text-muted-foreground">{member.position}</p>
                     </div>
-                    <p className="text-sm text-muted-foreground flex-grow">{member.bio}</p>
+                    <p className="text-sm text-muted-foreground flex-grow mt-2">{member.bio}</p>
                   </div>
                   <div className="flex space-x-4 mt-4">
                     {member.links.portfolio && (
@@ -123,33 +99,48 @@ export default function TeamPage() {
                     )}
                   </div>
                   <div className="flex justify-center mt-8">
-                    {/* Only show the profile button for actual team members, not for the "join us" card */}
-                    {member.id !== "join-us" ? (
-                      <Link href={`/equipo/miembro/${member.id}`}>
-                        <Button className="w-full">Ver perfil</Button>
-                      </Link>
-                    ) : (
-                      <Link href="/#contacto">
-                        <Button className="w-full">Únete al equipo</Button>
-                      </Link>
-                    )}
+                    <Link href={`/equipo/miembro/${member.publicId}`}>
+                      <Button className="w-full">Ver perfil</Button>
+                    </Link>
                   </div>
                 </CardContent>
               </Card>
             ))}
+
+            {/* Join Us Card */}
+            <Card className="overflow-hidden flex flex-col">
+              <div className="aspect-square relative bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center">
+                <div className="text-6xl font-bold text-primary/50">+</div>
+              </div>
+              <CardContent className="p-6 flex flex-col flex-grow">
+                <div className="flex flex-col flex-grow">
+                  <div>
+                    <h3 className="text-2xl font-bold">Tu puedes ser el siguiente</h3>
+                  </div>
+                  <p className="text-sm text-muted-foreground flex-grow mt-2">
+                    Se parte de nuestro equipo y ayuda a transformar la tecnología en soluciones innovadoras.
+                  </p>
+                </div>
+                <div className="flex justify-center mt-8">
+                  <Link href="/#contacto">
+                    <Button className="w-full">Únete al equipo</Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
 
       {/* Join Our Team Section */}
-      <section className="w-full py-12 md:py-24 lg:py-32 bg-gray-50">
+      <section className="w-full py-12 md:py-24 lg:py-32 bg-card">
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center justify-center space-y-4 text-center">
             <div className="space-y-2">
               <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
                 ¿Quieres unirte a nuestro equipo?
               </h2>
-              <p className="max-w-[700px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+              <p className="max-w-[700px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
                 Estamos siempre en búsqueda de talento apasionado por la tecnología y la innovación.
               </p>
             </div>
@@ -164,4 +155,3 @@ export default function TeamPage() {
     </main>
   )
 }
-

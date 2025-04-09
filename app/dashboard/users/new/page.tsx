@@ -5,6 +5,8 @@ import { checkPermission } from "@/lib/permissions"
 import { redirect } from "next/navigation"
 import { getRoles } from "@/lib/roles"
 
+export const dynamic = "force-dynamic"
+
 export default async function NewUserPage() {
   const session = await getSession()
   if (!session) {

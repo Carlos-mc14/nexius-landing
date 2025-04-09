@@ -9,6 +9,8 @@ import { Plus } from "lucide-react"
 import { DataTable } from "@/components/dashboard/data-table"
 import { columns } from "@/components/dashboard/users/columns"
 
+export const dynamic = "force-dynamic"
+
 export default async function UsersManagementPage() {
   const session = await getSession()
   if (!session) {
