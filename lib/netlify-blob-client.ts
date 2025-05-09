@@ -16,7 +16,7 @@ export interface BlobUploadOptions {
  * @param options Opciones de subida
  * @returns URL de la imagen subida
  */
-export default async function uploadToNetlifyBlob(
+export async function uploadToNetlifyBlob(
   file: File,
   options: BlobUploadOptions = {}
 ): Promise<string> {
