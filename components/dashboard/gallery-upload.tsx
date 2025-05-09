@@ -6,9 +6,9 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Upload, X } from "lucide-react"
+import { Upload, X, Loader2 } from "lucide-react"
 import Image from "next/image"
-import { uploadImage } from "@/lib/upload-client"
+import { uploadToNetlifyBlob } from "@/lib/netlify-blob-client"
 import { toast } from "@/components/ui/use-toast"
 
 interface GalleryUploadProps {
@@ -16,9 +16,16 @@ interface GalleryUploadProps {
   onChange: (value: string[]) => void
   disabled?: boolean
   maxImages?: number
+  folder?: string
 }
 
-export function GalleryUpload({ value, onChange, disabled, maxImages = 6 }: GalleryUploadProps) {
+export function GalleryUpload({
+  value,
+  onChange,
+  disabled,
+  maxImages = 6,
+  folder = "projects/gallery"
+}: GalleryUploadProps) {
   const [isUploading, setIsUploading] = useState(false)
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,7 +64,11 @@ export function GalleryUpload({ value, onChange, disabled, maxImages = 6 }: Gall
 
     setIsUploading(true)
     try {
-      const imageUrl = await uploadImage(file)
+      const imageUrl = await uploadToNetlifyBlob(file, {
+        folder: folder,
+        filename: `${Date.now()}-${file.name.replace(/\s+/g, '-')}`,
+      })
+      
       onChange([...value, imageUrl])
       toast({
         title: "Imagen subida",
@@ -76,6 +87,8 @@ export function GalleryUpload({ value, onChange, disabled, maxImages = 6 }: Gall
   }
 
   const handleRemove = (index: number) => {
+    // Nota: Aquí podríamos implementar la eliminación de la imagen de Netlify Blob
+    // Para esto, necesitaríamos llamar a deleteFromNetlifyBlob(value[index])
     const newImages = [...value]
     newImages.splice(index, 1)
     onChange(newImages)
@@ -105,8 +118,18 @@ export function GalleryUpload({ value, onChange, disabled, maxImages = 6 }: Gall
           <div className="flex flex-col items-center justify-center gap-2 rounded-md border border-dashed aspect-video">
             <Upload className="h-6 w-6 text-muted-foreground" />
             <p className="text-xs text-muted-foreground text-center px-2">Subir imagen</p>
-            <Label htmlFor="gallery-upload" className="cursor-pointer text-xs">
-              {isUploading ? "Subiendo..." : "Seleccionar"}
+            <Label 
+              htmlFor="gallery-upload" 
+              className={`cursor-pointer text-xs text-center ${disabled || isUploading ? "opacity-50" : ""}`}
+            >
+              {isUploading ? (
+                <div className="flex items-center gap-1 justify-center">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  <span>Subiendo...</span>
+                </div>
+              ) : (
+                "Seleccionar"
+              )}
             </Label>
             <Input
               id="gallery-upload"

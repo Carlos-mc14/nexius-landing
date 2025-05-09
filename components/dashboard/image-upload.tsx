@@ -6,18 +6,19 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Upload, X } from "lucide-react"
+import { Upload, X, Loader2 } from "lucide-react"
 import Image from "next/image"
-import { uploadImage } from "@/lib/upload-client"
+import { uploadToNetlifyBlob } from "@/lib/netlify-blob-client"
 import { toast } from "@/components/ui/use-toast"
 
 interface ImageUploadProps {
   value: string
   onChange: (value: string) => void
   disabled?: boolean
+  folder?: string
 }
 
-export function ImageUpload({ value, onChange, disabled }: ImageUploadProps) {
+export function ImageUpload({ value, onChange, disabled, folder = "projects" }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false)
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -46,7 +47,11 @@ export function ImageUpload({ value, onChange, disabled }: ImageUploadProps) {
 
     setIsUploading(true)
     try {
-      const imageUrl = await uploadImage(file)
+      const imageUrl = await uploadToNetlifyBlob(file, {
+        folder: folder,
+        filename: `${Date.now()}-${file.name.replace(/\s+/g, '-')}`,
+      })
+      
       onChange(imageUrl)
       toast({
         title: "Imagen subida",
@@ -65,6 +70,9 @@ export function ImageUpload({ value, onChange, disabled }: ImageUploadProps) {
   }
 
   const handleRemove = () => {
+    // Nota: Aquí podríamos implementar la eliminación de la imagen de Netlify Blob
+    // Para esto, necesitaríamos llamar a deleteFromNetlifyBlob(value)
+    // Pero por ahora solo eliminamos la referencia
     onChange("")
   }
 
@@ -93,9 +101,18 @@ export function ImageUpload({ value, onChange, disabled }: ImageUploadProps) {
           </div>
           <Label
             htmlFor="image-upload"
-            className="cursor-pointer rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90"
+            className={`cursor-pointer rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 ${
+              disabled || isUploading ? "opacity-50 cursor-not-allowed" : ""
+            }`}
           >
-            {isUploading ? "Subiendo..." : "Seleccionar imagen"}
+            {isUploading ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Subiendo...</span>
+              </div>
+            ) : (
+              "Seleccionar imagen"
+            )}
           </Label>
           <Input
             id="image-upload"
