@@ -21,24 +21,23 @@ export async function uploadToNetlifyBlob(
   options: BlobUploadOptions = {}
 ): Promise<string> {
   try {
-    // Generar un nombre único para el archivo si no se proporciona uno
     const filename = options.filename || `${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
     
-    // Determinar la carpeta (por defecto 'images')
     const folder = options.folder || 'images';
     
-    // Crear una clave única para el blob
     const blobKey = `${folder}/${filename}`;
-    
-    // Obtener el store para 'media-assets'
-    const store = getStore("media-assets");
 
-    // 1) sube el blob (no devuelve URL)
+    const store = getStore({
+        name: "media-assets",
+        siteID: process.env.NETLIFY_SITE_ID,
+        token: process.env.NETLIFY_BLOBS_KEY
+      });
+
     await store.setJSON(blobKey, await file.arrayBuffer(), {
         metadata: { contentType: file.type, filename: file.name, size: file.size },
       })
     
-    const publicUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/.netlify/blob/media-assets/${encodeURIComponent(blobKey)}`
+    const publicUrl = `${process.env.NEXTAUTH_URL}/.netlify/blob/media-assets/${encodeURIComponent(blobKey)}`
     return publicUrl
   } catch (error) {
     console.error("Error uploading to Netlify Blob:", error);
