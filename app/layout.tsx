@@ -10,6 +10,8 @@ import "./globals.css"
 import { Toaster } from "@/components/ui/toaster"
 import { getSeoConfig } from "@/lib/seo"
 
+import { ThemeToggle } from "@/components/theme-toggle"
+
 const inter = Inter({ subsets: ["latin"] })
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -93,19 +95,22 @@ export default async function RootLayout({
         ))}
       </head>
       <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <RecaptchaProvider>
             <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
               <Navbar />
             </header>
 
             {children}
-            <footer className="w-full py-6 md:py-0 bg-gray-900 text-white">
+            <footer className="w-full py-12 bg-muted/50 dark:bg-muted/20 border-t border-border">
               <div className="container px-4 md:px-6">
-                <div className="grid grid-cols-1 gap-8 md:grid-cols-4 py-8">
+                <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
                   <div className="space-y-4">
                     <h3 className="text-lg font-bold">Nexius</h3>
-                    <p className="text-gray-400">Soluciones digitales que transforman tu negocio.</p>
+                    <p className="text-muted-foreground">Soluciones digitales que transforman tu negocio.</p>      
+
+                    <ThemeToggle />
+
                   </div>
                   <div className="space-y-4">
                     <h3 className="text-lg font-bold">Nuestras redes</h3>
@@ -114,7 +119,7 @@ export default async function RootLayout({
                         href="https://www.linkedin.com/company/nexiuslat/"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center space-x-3 text-gray-400 hover:text-white"
+                        className="flex items-center space-x-3 text-muted-foreground hover:text-foreground transition-colors"
                       >
                         <Linkedin size={20} />
                         <span>Linkedin</span>
@@ -123,7 +128,7 @@ export default async function RootLayout({
                         href="https://github.com/asdasd"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center space-x-3 text-gray-400 hover:text-white"
+                        className="flex items-center space-x-3 text-muted-foreground hover:text-foreground transition-colors"
                       >
                         <Github size={20} />
                         <span>Github</span>
@@ -132,7 +137,7 @@ export default async function RootLayout({
                         href="https://instagram.com/asdasd"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center space-x-3 text-gray-400 hover:text-white"
+                        className="flex items-center space-x-3 text-muted-foreground hover:text-foreground transition-colors"
                       >
                         <Facebook size={20} />
                         <span>Facebook</span>
@@ -141,7 +146,7 @@ export default async function RootLayout({
                         href="https://instagram.com/asdasd"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center space-x-3 text-gray-400 hover:text-white"
+                        className="flex items-center space-x-3 text-muted-foreground hover:text-foreground transition-colors"
                       >
                         <Phone size={20} />
                         <span>WhatsApp</span>
@@ -153,22 +158,31 @@ export default async function RootLayout({
                     <h3 className="text-lg font-bold">Empresa</h3>
                     <ul className="space-y-2">
                       <li>
-                        <Link href="#nosotros" className="text-gray-400 hover:text-white">
+                        <Link
+                          href="#nosotros"
+                          className="text-muted-foreground hover:text-foreground transition-colors"
+                        >
                           Sobre Nosotros
                         </Link>
                       </li>
                       <li>
-                        <Link href="/equipo" className="text-gray-400 hover:text-white">
+                        <Link href="/equipo" className="text-muted-foreground hover:text-foreground transition-colors">
                           Equipo
                         </Link>
                       </li>
                       <li>
-                        <Link href="#portafolio" className="text-gray-400 hover:text-white">
+                        <Link
+                          href="#portafolio"
+                          className="text-muted-foreground hover:text-foreground transition-colors"
+                        >
                           Portafolio
                         </Link>
                       </li>
                       <li>
-                        <Link href="#testimonios" className="text-gray-400 hover:text-white">
+                        <Link
+                          href="#testimonios"
+                          className="text-muted-foreground hover:text-foreground transition-colors"
+                        >
                           Testimonios
                         </Link>
                       </li>
@@ -177,13 +191,13 @@ export default async function RootLayout({
                   <div className="space-y-4">
                     <h3 className="text-lg font-bold">Contacto</h3>
                     <ul className="space-y-2">
-                      <li className="text-gray-400">Lima, Lima, Perú</li>
-                      <li className="text-gray-400">+51 999 999 999</li>
-                      <li className="text-gray-400">contacto@nexius.lat</li>
+                      <li className="text-muted-foreground">Lima, Lima, Perú</li>
+                      <li className="text-muted-foreground">+51 999 999 999</li>
+                      <li className="text-muted-foreground">contacto@nexius.lat</li>
                     </ul>
                   </div>
                 </div>
-                <div className="border-t border-gray-800 py-6 text-center text-sm text-gray-400">
+                <div className="border-t border-border mt-8 pt-6 text-center text-sm text-muted-foreground">
                   <p>© {new Date().getFullYear()} Nexius. Todos los derechos reservados.</p>
                 </div>
               </div>
