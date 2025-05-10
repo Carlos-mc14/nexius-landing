@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server"
 import { getSession } from "@/lib/auth"
 import { checkPermission } from "@/lib/permissions"
-import { writeFile } from "fs/promises"
-import { join } from "path"
-import { v4 as uuidv4 } from "uuid"
+import { uploadToVercelBlob } from "@/lib/blob"
 
 // Maximum file size (5MB)
 const MAX_FILE_SIZE = 5 * 1024 * 1024
@@ -25,6 +23,7 @@ export async function POST(request: Request) {
     // Parse the multipart form data
     const formData = await request.formData()
     const file = formData.get("file") as File | null
+    const folder = (formData.get("folder") as string) || "general"
 
     if (!file) {
       return NextResponse.json({ error: "No se ha proporcionado ningún archivo" }, { status: 400 })
@@ -43,23 +42,15 @@ export async function POST(request: Request) {
     // Get file extension
     const fileExtension = file.name.split(".").pop() || "jpg"
 
-    // Generate a unique filename
-    const fileName = `${uuidv4()}.${fileExtension}`
-
-    // Create the uploads directory if it doesn't exist
-    const uploadsDir = join(process.cwd(), "public", "uploads")
-
     try {
       // Convert the file to an ArrayBuffer
       const bytes = await file.arrayBuffer()
       const buffer = Buffer.from(bytes)
 
-      // Save the file
-      const filePath = join(uploadsDir, fileName)
-      await writeFile(filePath, buffer)
+      // Upload to Vercel Blob
+      const fileUrl = await uploadToVercelBlob(buffer, fileExtension, folder)
 
       // Return the URL to the uploaded file
-      const fileUrl = `/uploads/${fileName}`
       return NextResponse.json({ url: fileUrl, success: true })
     } catch (error) {
       console.error("Error saving file:", error)

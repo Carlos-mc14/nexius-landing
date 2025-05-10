@@ -1,6 +1,6 @@
 // Client-side functions for file uploads
 
-export async function uploadImage(file: File): Promise<string> {
+export async function uploadImage(file: File, folder: string): Promise<string> {
   try {
     // Create a FormData object to send the file
     const formData = new FormData()
