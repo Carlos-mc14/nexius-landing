@@ -1,4 +1,5 @@
 "use client"
+
 import Link from "next/link"
 import { useState, useEffect, useRef } from "react"
 
@@ -46,97 +47,114 @@ export default function Navbar() {
   ]
 
   return (
-    <div>
-      <nav className="block w-full max-w-screen px-4 py-4 mx-auto bg-white bg-opacity-90 sticky top-3 shadow lg:px-8 backdrop-blur-lg backdrop-saturate-150 z-[9999]">
-        <div className="container flex flex-wrap items-center justify-between mx-auto text-slate-800">
-          <Link href="/" className="mr-4 block cursor-pointer py-1.5 text-black-600 font-bold text-2xl">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 w-full">
+      <div className="max-w-[1280px] mx-auto px-4 py-3">
+        <div className="flex items-center justify-between">
+          {/* Logo */}
+          <Link href="/" className="font-bold text-2xl text-slate-800 dark:text-white">
             NEXIUS
           </Link>
 
-          <div className="lg:hidden">
-            <button
-              className="relative ml-auto h-6 max-h-[40px] w-6 max-w-[40px] select-none rounded-lg text-center align-middle text-xs font-medium uppercase text-inherit transition-all hover:bg-transparent focus:bg-transparent active:bg-transparent disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
-              onClick={toggleMobileMenu}
-              type="button"
+          {/* Desktop Navigation */}
+          <div className="hidden lg:flex items-center space-x-8">
+            {navItems.map((item, index) => (
+              <Link
+                key={index}
+                href={item.href}
+                className="text-slate-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
+              >
+                {item.name}
+              </Link>
+            ))}
+            <Link
+              href="/#contacto"
+              className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
             >
-              <span className="absolute transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-8 h-8"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16"></path>
-                </svg>
-              </span>
+              Solicitar cotización
+            </Link>
+          </div>
+
+          {/* Mobile Menu Button */}
+          <div className="flex items-center lg:hidden">
+            <button
+              onClick={toggleMobileMenu}
+              className="ml-2 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+              aria-label="Toggle menu"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 text-slate-800 dark:text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
             </button>
           </div>
-
-          {/* Mobile Menu */}
-          <div
-            ref={menuRef}
-            className={`fixed top-0 right-0 min-h-screen w-64 bg-slate-100 shadow-lg transform transition-transform duration-300 ease-in-out ${
-              isMobileMenuOpen ? "translate-x-100" : "translate-x-full"
-            } lg:hidden z-50`}
-          >
-            <div className="flex flex-row items-center border-b pb-4">
-              <Link href="/" className="cursor-pointer text-black-600 font-bold text-xl pt-4 ps-4">
-                NEXIUS
-              </Link>
-              <button onClick={toggleMobileMenu} className="absolute top-4 right-4 text-slate-600 hover:text-black-500">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-8 h-8"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <ul className="flex flex-col h-full gap-4 p-4">
-              {navItems.map((item, index) => (
-                <li key={index} className="flex items-center p-1 text-lg gap-x-2 text-slate-600 hover:text-blue-500">
-                  <Link
-                    href={item.href}
-                    className="flex items-center"
-                    onClick={() => setIsMobileMenuOpen(false)} // Cerrar el menú al hacer clic en un enlace
-                  >
-                    {item.name}
-                  </Link>
-                </li>
-              ))}
-              <li className="mt-4">
-                <button className="flex h-9 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
-                  <Link href="/#contacto" onClick={() => setIsMobileMenuOpen(false)}>
-                    Solicitar cotización
-                  </Link>
-                </button>
-              </li>
-            </ul>
-          </div>
-
-          {/* Desktop Menu */}
-          <div className="hidden lg:block">
-            <ul className="flex flex-col gap-2 mt-2 mb-4 lg:mb-0 lg:mt-0 lg:flex-row lg:items-center lg:gap-6">
-              {navItems.map((item, index) => (
-                <li key={index} className="flex items-center p-1 text-lg gap-x-2 text-slate-600 hover:text-blue-500">
-                  <Link href={item.href} className="flex items-center">
-                    {item.name}
-                  </Link>
-                </li>
-              ))}
-              <li>
-                <button className="hidden md:inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
-                  <Link href="/#contacto">Solicitar cotización</Link>
-                </button>
-              </li>
-            </ul>
-          </div>
         </div>
-      </nav>
-    </div>
+      </div>
+
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Mobile Menu */}
+      <div
+        ref={menuRef}
+        className={`fixed top-0 right-0 h-full w-[280px] max-w-[80%] bg-white dark:bg-gray-900 shadow-xl z-50 transform transition-transform duration-300 ease-in-out lg:hidden ${
+          isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+          <Link
+            href="/"
+            className="font-bold text-xl text-slate-800 dark:text-white"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            NEXIUS
+          </Link>
+          <button
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+            aria-label="Close menu"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6 text-slate-800 dark:text-white"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div className="p-4 flex flex-col gap-4">
+          {navItems.map((item, index) => (
+            <Link
+              key={index}
+              href={item.href}
+              className="py-2 text-slate-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              {item.name}
+            </Link>
+          ))}
+          <Link
+            href="/#contacto"
+            className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors text-center mt-2"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            Solicitar cotización
+          </Link>
+        </div>
+      </div>
+    </nav>
   )
 }

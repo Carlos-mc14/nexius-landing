@@ -9,7 +9,6 @@ import Link from "next/link"
 import "./globals.css"
 import { Toaster } from "@/components/ui/toaster"
 import { getSeoConfig } from "@/lib/seo"
-
 import { ThemeToggle } from "@/components/theme-toggle"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -94,21 +93,18 @@ export default async function RootLayout({
           <meta key={index} name={tag.name} content={tag.content} />
         ))}
       </head>
-      <body className={inter.className}>
+      <body className={`${inter.className} w-full overflow-x-hidden m-0 p-0`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <RecaptchaProvider>
-            <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-              <Navbar />
-            </header>
-
-            {children}
+            <Navbar />
+            <main className="pt-16 w-full overflow-x-hidden">{children}</main>
             <footer className="w-full py-12 bg-muted/50 dark:bg-muted/20 border-t border-border">
-              <div className="container px-4 md:px-6">
+              <div className="max-w-[1280px] mx-auto px-4 md:px-6">
                 <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
                   <div className="space-y-4">
                     <h3 className="text-lg font-bold">Nexius</h3>
-                    <p className="text-muted-foreground">Soluciones digitales que transforman tu negocio.</p>      
-
+                    <p className="text-muted-foreground">Soluciones digitales que transforman tu negocio.</p>
+                    
                     <ThemeToggle />
 
                   </div>

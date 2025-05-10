@@ -88,7 +88,7 @@ export default async function Home() {
             </div>
           </div>
           <div
-            className="absolute bottom-[-100px] right-[600px] transform -translate-x-1/2 hidden md:block"
+            className="absolute bottom-[-100px] right-[609px] transform -translate-x-1/2 hidden md:block"
           >
             <Link
               href="#servicios"
@@ -107,7 +107,7 @@ export default async function Home() {
       <section id="servicios" className="w-full py-16 md:py-24 lg:py-32">
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
-            <div className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-sm text-primary backdrop-blur-sm dark:border-primary/30 dark:bg-primary/20 dark:text-primary-foreground">
+            <div className="text-slate-700 inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-sm backdrop-blur-sm dark:border-primary/30 dark:bg-primary/20 dark:text-slate-200">
               <span className="font-medium">Nuestros Servicios</span>
             </div>
             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
@@ -143,7 +143,7 @@ export default async function Home() {
       <section id="portafolio" className="w-full py-16 md:py-24 lg:py-32 bg-muted/30 dark:bg-muted/10">
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
-            <div className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-sm text-primary backdrop-blur-sm dark:border-primary/30 dark:bg-primary/20 dark:text-primary-foreground">
+            <div className="text-slate-700 inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-sm backdrop-blur-sm dark:border-primary/30 dark:bg-primary/20 dark:text-slate-200">
               <span className="font-medium">Portafolio</span>
             </div>
             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Proyectos destacados</h2>
@@ -187,7 +187,7 @@ export default async function Home() {
         <div className="container px-4 md:px-6">
           <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 items-center">
             <div>
-              <div className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-sm text-primary backdrop-blur-sm dark:border-primary/30 dark:bg-primary/20 dark:text-primary-foreground mb-4">
+            <div className="text-slate-700 inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-sm backdrop-blur-sm dark:border-primary/30 dark:bg-primary/20 dark:text-slate-200">
                 <span className="font-medium">¿Por qué elegirnos?</span>
               </div>
               <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl mb-6">
@@ -231,7 +231,7 @@ export default async function Home() {
       <section id="testimonios" className="w-full py-16 md:py-24 lg:py-32 bg-muted/30 dark:bg-muted/10">
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
-            <div className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-sm text-primary backdrop-blur-sm dark:border-primary/30 dark:bg-primary/20 dark:text-primary-foreground">
+            <div className="text-slate-700 inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-sm backdrop-blur-sm dark:border-primary/30 dark:bg-primary/20 dark:text-slate-200">
               <span className="font-medium">Testimonios</span>
             </div>
             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
@@ -286,7 +286,7 @@ export default async function Home() {
         <div className="absolute inset-0 bg-grid-black/[0.02] dark:bg-grid-white/[0.02] bg-[length:20px_20px] z-0"></div>
         <div className="container relative z-10 px-4 md:px-6">
           <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
-            <div className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-sm text-primary backdrop-blur-sm dark:border-primary/30 dark:bg-primary/20 dark:text-primary-foreground">
+            <div className="text-slate-700 inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-sm backdrop-blur-sm dark:border-primary/30 dark:bg-primary/20 dark:text-slate-200">
               <span className="font-medium">Contáctanos</span>
             </div>
             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">¿Listo para comenzar?</h2>
