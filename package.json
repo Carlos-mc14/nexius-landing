@@ -41,6 +41,7 @@
     "@radix-ui/react-tooltip": "^1.1.6",
     "@sendgrid/mail": "^8.1.4",
     "@tanstack/react-table": "^8.21.2",
+    "@types/marked": "^5.0.2",
     "@types/node-fetch": "^2.6.12",
     "@upstash/ratelimit": "latest",
     "@upstash/redis": "latest",
@@ -58,6 +59,7 @@
     "input-otp": "1.4.1",
     "jose": "^6.0.10",
     "lucide-react": "^0.454.0",
+    "marked": "^15.0.11",
     "mongodb": "^6.15.0",
     "next": "^15.2.2",
     "next-themes": "^0.4.4",
@@ -77,6 +79,7 @@
     "zod": "latest"
   },
   "devDependencies": {
+    "@tailwindcss/typography": "^0.5.16",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",

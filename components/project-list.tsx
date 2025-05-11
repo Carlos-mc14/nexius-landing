@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { ExternalLink, Github } from "lucide-react"
+import { ExternalLink, Github, ArrowRight } from "lucide-react"
 
 export default async function ProjectList({ projectsPromise }: { projectsPromise: Promise<any[]> }) {
   const projects = await projectsPromise
@@ -92,6 +92,11 @@ export default async function ProjectList({ projectsPromise }: { projectsPromise
                     </Button>
                   </Link>
                 )}
+                <Link href={`/portafolio/${project.id}`}>
+                  <Button variant="secondary" size="sm">
+                    <ArrowRight className="mr-2 h-4 w-4" /> Leer más
+                  </Button>
+                </Link>
               </div>
             </CardFooter>
           </Card>
@@ -148,4 +153,3 @@ function getLabelTextColor(color: string): string {
   const darkColors = ["black"]
   return darkColors.includes(color) ? "#ffffff" : "#333333"
 }
-

@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, LayoutDashboard, Settings, Users, FolderKanban, Search } from "lucide-react"
+import { Home, LayoutDashboard, Newspaper, Users, FolderKanban, Search } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
@@ -28,16 +28,22 @@ export function DashboardNav({ className }: DashboardNavProps) {
       pattern: /^\/dashboard\/homepage/,
     },
     {
-      title: "Equipo",
-      href: "/dashboard/team",
-      icon: <Users className="mr-2 h-4 w-4" />,
-      pattern: /^\/dashboard\/team/,
-    },
-    {
       title: "Proyectos",
       href: "/dashboard/projects",
       icon: <FolderKanban className="mr-2 h-4 w-4" />,
       pattern: /^\/dashboard\/projects/,
+    },
+    {
+      title: "Blog",
+      href: "/dashboard/blog",
+      icon: <Newspaper className="mr-2 h-4 w-4" />,
+      pattern: /^\/dashboard\/blog/,
+    },
+    {
+      title: "Equipo",
+      href: "/dashboard/team",
+      icon: <Users className="mr-2 h-4 w-4" />,
+      pattern: /^\/dashboard\/team/,
     },
     {
       title: "Usuarios",
@@ -50,12 +56,6 @@ export function DashboardNav({ className }: DashboardNavProps) {
       href: "/dashboard/seo",
       icon: <Search className="mr-2 h-4 w-4" />,
       pattern: /^\/dashboard\/seo/,
-    },
-    {
-      title: "Configuración",
-      href: "/dashboard/settings",
-      icon: <Settings className="mr-2 h-4 w-4" />,
-      pattern: /^\/dashboard\/settings/,
     },
   ]
 

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { ExternalLink } from "lucide-react"
+import {ArrowRight, ExternalLink } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -100,6 +100,11 @@ export default function CompletedProjects() {
             </div>
           </CardContent>
           <CardFooter className="flex gap-2">
+              <Link href={`/portafolio/${project.slug}`} className="flex-1">
+                <Button variant="secondary" className="w-full" size="sm">
+                    Leer más <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
             {project.demoUrl && (
               <Link href={project.demoUrl} className="flex-1">
                 <Button variant="default" className="w-full" size="sm">

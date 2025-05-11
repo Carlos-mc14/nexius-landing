@@ -1,3 +1,5 @@
+import { CardFooter } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import Image from "next/image"
 import {
@@ -13,6 +15,7 @@ import {
   Users,
   Shield,
   Zap,
+  BookOpen,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -20,6 +23,9 @@ import ContactForm from "@/components/contact-form"
 import { Suspense } from "react"
 import CompletedProjects from "@/components/completed-projects"
 import { getHomepageContent } from "@/lib/homepage"
+import { getLatestBlogPosts } from "@/lib/blog"
+import { formatDate } from "@/lib/utils"
+import { getBlogPosts } from "@/lib/blog"
 
 // Disable caching for this page to always show the latest content
 export const revalidate = 0
@@ -27,6 +33,9 @@ export const revalidate = 0
 export default async function Home() {
   // Fetch homepage content
   const homepageContent = await getHomepageContent()
+
+  // Fetch latest blog posts
+  const latestPosts = await getLatestBlogPosts(3)
 
   // Destructure sections for easier access
   const { hero, services, testimonials, whyChooseUs } = homepageContent
@@ -87,9 +96,7 @@ export default async function Home() {
               </div>
             </div>
           </div>
-          <div
-            className="absolute bottom-[-100px] right-[609px] transform -translate-x-1/2 hidden md:block"
-          >
+          <div className="absolute bottom-[-100px] right-[609px] transform -translate-x-1/2 hidden md:block">
             <Link
               href="#servicios"
               className="flex flex-col items-center text-white/80 hover:text-white transition-colors"
@@ -98,8 +105,6 @@ export default async function Home() {
               <ArrowDown className="animate-bounce" />
             </Link>
           </div>
-
-
         </div>
       </section>
 
@@ -182,12 +187,79 @@ export default async function Home() {
         </div>
       </section>
 
+      {/* Blog Section - New Addition */}
+      {latestPosts.length > 0 && (
+        <section id="blog" className="w-full py-16 md:py-24 lg:py-32">
+          <div className="container px-4 md:px-6">
+            <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
+              <div className="text-slate-700 inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-sm backdrop-blur-sm dark:border-primary/30 dark:bg-primary/20 dark:text-slate-200">
+                <span className="font-medium">Blog</span>
+              </div>
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Últimas publicaciones</h2>
+              <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed">
+                Artículos técnicos, tutoriales y noticias sobre tecnología y desarrollo de software.
+              </p>
+            </div>
+
+            <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+              {latestPosts.map((post) => (
+                <Card key={post.id} className="overflow-hidden flex flex-col">
+                  <div className="relative aspect-video w-full overflow-hidden">
+                    <Image
+                      src={post.coverImage || "/placeholder.svg?height=400&width=600"}
+                      alt={post.title}
+                      fill
+                      className="object-cover transition-transform hover:scale-105 duration-300"
+                    />
+                    {post.featured && (
+                      <div className="absolute top-2 right-2">
+                        <Badge variant="secondary">Destacado</Badge>
+                      </div>
+                    )}
+                  </div>
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="space-y-1">
+                        <CardTitle className="line-clamp-1">{post.title}</CardTitle>
+                        <p className="text-xs text-muted-foreground">
+                          {formatDate(post.publishedAt || post.createdAt)}
+                        </p>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pb-2 flex-grow">
+                    <CardDescription className="line-clamp-3">{post.excerpt}</CardDescription>
+                  </CardContent>
+                  <CardFooter className="pt-0">
+                    <Link href={`/blog/${post.slug}`} className="w-full">
+                      <Button variant="outline" className="w-full group">
+                        Leer artículo
+                        <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                      </Button>
+                    </Link>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+
+            <div className="flex justify-center mt-10">
+              <Link href="/blog">
+                <Button variant="outline" size="lg" className="group">
+                  Ver todos los artículos
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Why Choose Us Section - Modern Design */}
-      <section id="nosotros" className="w-full py-16 md:py-24 lg:py-32">
+      <section id="nosotros" className="w-full py-16 md:py-24 lg:py-32 bg-muted/30 dark:bg-muted/10">
         <div className="container px-4 md:px-6">
           <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 items-center">
             <div>
-            <div className="text-slate-700 inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-sm backdrop-blur-sm dark:border-primary/30 dark:bg-primary/20 dark:text-slate-200">
+              <div className="text-slate-700 inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-sm backdrop-blur-sm dark:border-primary/30 dark:bg-primary/20 dark:text-slate-200">
                 <span className="font-medium">¿Por qué elegirnos?</span>
               </div>
               <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl mb-6">
@@ -228,7 +300,7 @@ export default async function Home() {
       </section>
 
       {/* Testimonials Section - Modern Design */}
-      <section id="testimonios" className="w-full py-16 md:py-24 lg:py-32 bg-muted/30 dark:bg-muted/10">
+      <section id="testimonios" className="w-full py-16 md:py-24 lg:py-32">
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
             <div className="text-slate-700 inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-sm backdrop-blur-sm dark:border-primary/30 dark:bg-primary/20 dark:text-slate-200">
@@ -282,7 +354,10 @@ export default async function Home() {
       </section>
 
       {/* Contact Section - Modern Design */}
-      <section id="contacto" className="w-full py-16 md:py-24 lg:py-32 relative overflow-hidden">
+      <section
+        id="contacto"
+        className="w-full py-16 md:py-24 lg:py-32 relative overflow-hidden bg-muted/30 dark:bg-muted/10"
+      >
         <div className="absolute inset-0 bg-grid-black/[0.02] dark:bg-grid-white/[0.02] bg-[length:20px_20px] z-0"></div>
         <div className="container relative z-10 px-4 md:px-6">
           <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
@@ -445,6 +520,8 @@ function getIconComponent(iconName: string, className: string) {
       return <Phone className={className} />
     case "MessageSquare":
       return <MessageSquare className={className} />
+    case "BookOpen":
+      return <BookOpen className={className} />
     default:
       return <Globe className={className} />
   }

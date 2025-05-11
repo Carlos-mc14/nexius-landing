@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getSession } from "@/lib/auth"
 import { checkPermission } from "@/lib/permissions"
 import { uploadToVercelBlob } from "@/lib/blob"
+import { saveImageMetadata } from "@/lib/image-metadata"
 
 // Maximum file size (5MB)
 const MAX_FILE_SIZE = 5 * 1024 * 1024
@@ -24,6 +25,9 @@ export async function POST(request: Request) {
     const formData = await request.formData()
     const file = formData.get("file") as File | null
     const folder = (formData.get("folder") as string) || "general"
+    const name = (formData.get("name") as string) || ""
+    const altText = (formData.get("altText") as string) || ""
+    const description = (formData.get("description") as string) || ""
 
     if (!file) {
       return NextResponse.json({ error: "No se ha proporcionado ningún archivo" }, { status: 400 })
@@ -50,8 +54,26 @@ export async function POST(request: Request) {
       // Upload to Vercel Blob
       const fileUrl = await uploadToVercelBlob(buffer, fileExtension, folder)
 
+      // Save metadata if provided
+      if (name || altText || description) {
+        await saveImageMetadata({
+          url: fileUrl,
+          name: name || file.name,
+          altText: altText || name || file.name,
+          description,
+          folder,
+          size: file.size,
+        })
+      }
+
       // Return the URL to the uploaded file
-      return NextResponse.json({ url: fileUrl, success: true })
+      return NextResponse.json({
+        url: fileUrl,
+        name: name || file.name,
+        altText: altText || name || file.name,
+        description,
+        success: true,
+      })
     } catch (error) {
       console.error("Error saving file:", error)
       return NextResponse.json({ error: "Error al guardar el archivo" }, { status: 500 })

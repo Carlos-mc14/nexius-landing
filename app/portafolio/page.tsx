@@ -164,6 +164,11 @@ export default async function PortfolioPage() {
                             </Button>
                           </Link>
                         )}
+                        <Link href={`/portafolio/${project.slug}`} className="flex-1">
+                          <Button variant="secondary" className="w-full" size="sm">
+                            Leer más <ArrowRight className="ml-2 h-4 w-4" />
+                          </Button>
+                        </Link>
                       </CardFooter>
                     </Card>
                   ))}
@@ -216,9 +221,9 @@ export default async function PortfolioPage() {
       <section className="w-full py-12 md:py-24 bg-primary text-primary-foreground">
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center justify-center space-y-4 text-center">
-            <div className="space-y-2">
+            <div className="space-y-2 dark:text-white">
               <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">¿Listo para tu próximo proyecto?</h2>
-              <p className="max-w-[600px] text-primary-foreground/80 md:text-xl/relaxed">
+              <p className="max-w-[600px] text-primary-foreground/80 md:text-xl/relaxed dark:text-white">
                 Contáctanos hoy mismo para discutir cómo podemos ayudarte a transformar tu negocio con soluciones
                 digitales a medida.
               </p>
