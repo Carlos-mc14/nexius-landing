@@ -90,22 +90,6 @@ export default function ContactForm() {
     },
   })
 
-  // Función para mostrar la animación de éxito (para pruebas)
-  const showSuccessAnimation = () => {
-    setShowSuccess(true)
-    
-    // Mostrar mensaje de éxito en toast
-    toast({
-      title: "Prueba de animación",
-      description: "Esta es una demostración de la animación de éxito.",
-    })
-
-    // Ocultar la animación después de 3 segundos
-    setTimeout(() => {
-      setShowSuccess(false)
-    }, 3000)
-  }
-
   // Función para enviar el formulario
   async function onSubmit(data: FormValues) {
     setIsSubmitting(true)
@@ -321,16 +305,6 @@ export default function ContactForm() {
               </a>{" "}
               de Google.
             </div>
-
-            {/* Botón de prueba para la animación */}
-            <Button
-              type="button"
-              onClick={showSuccessAnimation}
-              className="w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground mb-4"
-            >
-              <Wand2 className="mr-2 h-4 w-4" />
-              Probar animación
-            </Button>
 
             <Button
               type="submit"
