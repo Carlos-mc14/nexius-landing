@@ -10,6 +10,7 @@ import "./globals.css"
 import { Toaster } from "@/components/ui/toaster"
 import { getSeoConfig } from "@/lib/seo"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { getHomepageContent } from "@/lib/homepage"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -69,6 +70,7 @@ export default async function RootLayout({
   children: React.ReactNode
 }) {
   const seo = await getSeoConfig()
+  const homepageContent = await getHomepageContent()
 
   return (
     <html lang="es" className="scroll-smooth" suppressHydrationWarning>
@@ -188,8 +190,8 @@ export default async function RootLayout({
                     <h3 className="text-lg font-bold">Contacto</h3>
                     <ul className="space-y-2">
                       <li className="text-muted-foreground">Lima, Lima, Perú</li>
-                      <li className="text-muted-foreground">+51 999 999 999</li>
-                      <li className="text-muted-foreground">contacto@nexius.lat</li>
+                      <li className="text-muted-foreground">{homepageContent.contactInfo?.phone || "+123 456 7890"}</li>
+                      <li className="text-muted-foreground">{homepageContent.contactInfo?.email || "contacto@nexius.lat"}</li>
                     </ul>
                   </div>
                 </div>

@@ -10,9 +10,11 @@ import { Textarea } from "@/components/ui/textarea"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "@/hooks/use-toast"
-import { Loader2, Send } from "lucide-react"
+import { Loader2, Send, CheckCircle, Wand2 } from "lucide-react"
 import { useRecaptcha } from "@/components/recaptcha-provider"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { motion, AnimatePresence } from "framer-motion"
+
 
 // Definir el esquema de validación
 const formSchema = z.object({
@@ -26,8 +28,53 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>
 
+// Componente para la animación de éxito
+const SuccessAnimation = () => {
+  return (
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="absolute inset-0 flex flex-col items-center justify-center bg-background bg-slate-100 dark:bg-background rounded-md z-10"
+    >
+      <motion.div
+        initial={{ scale: 0 }}
+        animate={{ scale: [0, 1.2, 1] }}
+        transition={{ duration: 0.5, times: [0, 0.7, 1] }}
+        className="text-green-600 mb-4"
+      >
+        <CheckCircle size={80} className="stroke-2" />
+      </motion.div>
+      <motion.h3 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="text-xl font-bold text-foreground dark:text-foreground"
+      >
+        ¡Mensaje enviado con éxito!
+      </motion.h3>
+      <motion.p 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        className="mt-2 text-center text-muted-foreground dark:text-muted-foreground max-w-xs"
+      >
+        Gracias por contactarnos. Responderemos a tu mensaje lo antes posible.
+      </motion.p>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.7 }}
+        className="mt-6"
+      >
+        <div className="w-16 h-1 bg-green-600 rounded-full mx-auto" />
+      </motion.div>
+    </motion.div>
+  )
+}
+
 export default function ContactForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
   const { executeRecaptcha, isLoaded } = useRecaptcha()
 
   // Inicializar el formulario
@@ -42,6 +89,22 @@ export default function ContactForm() {
       mensaje: "",
     },
   })
+
+  // Función para mostrar la animación de éxito (para pruebas)
+  const showSuccessAnimation = () => {
+    setShowSuccess(true)
+    
+    // Mostrar mensaje de éxito en toast
+    toast({
+      title: "Prueba de animación",
+      description: "Esta es una demostración de la animación de éxito.",
+    })
+
+    // Ocultar la animación después de 3 segundos
+    setTimeout(() => {
+      setShowSuccess(false)
+    }, 3000)
+  }
 
   // Función para enviar el formulario
   async function onSubmit(data: FormValues) {
@@ -74,14 +137,20 @@ export default function ContactForm() {
         throw new Error(result.error || "Error al enviar el formulario")
       }
 
-      // Mostrar mensaje de éxito
+      // Mostrar animación de éxito
+      setShowSuccess(true)
+      
+      // Mostrar mensaje de éxito en toast
       toast({
         title: "Formulario enviado",
         description: "Nos pondremos en contacto contigo pronto.",
       })
 
-      // Resetear el formulario
-      form.reset()
+      // Resetear el formulario después de 3 segundos
+      setTimeout(() => {
+        form.reset()
+        setShowSuccess(false)
+      }, 3000)
     } catch (error) {
       // Mostrar mensaje de error
       toast({
@@ -96,7 +165,7 @@ export default function ContactForm() {
   }
 
   return (
-    <Card className="w-full border border-border bg-card text-card-foreground shadow-sm dark:border-border dark:bg-card dark:text-card-foreground">
+    <Card className="w-full border border-border bg-card text-card-foreground shadow-sm dark:border-border dark:bg-card dark:text-card-foreground relative overflow-hidden">
       <CardHeader className="pb-4">
         <CardTitle className="text-2xl font-bold">Contáctanos</CardTitle>
         <CardDescription>Completa el formulario y nos pondremos en contacto contigo lo antes posible.</CardDescription>
@@ -252,6 +321,17 @@ export default function ContactForm() {
               </a>{" "}
               de Google.
             </div>
+
+            {/* Botón de prueba para la animación */}
+            <Button
+              type="button"
+              onClick={showSuccessAnimation}
+              className="w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground mb-4"
+            >
+              <Wand2 className="mr-2 h-4 w-4" />
+              Probar animación
+            </Button>
+
             <Button
               type="submit"
               className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
@@ -271,6 +351,11 @@ export default function ContactForm() {
             </Button>
           </form>
         </Form>
+        
+        {/* Animación de éxito */}
+        <AnimatePresence>
+          {showSuccess && <SuccessAnimation />}
+        </AnimatePresence>
       </CardContent>
     </Card>
   )
