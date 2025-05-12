@@ -14,7 +14,7 @@ import { Loader2, Send, CheckCircle, Wand2 } from "lucide-react"
 import { useRecaptcha } from "@/components/recaptcha-provider"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { motion, AnimatePresence } from "framer-motion"
-
+import Link from "next/link"
 
 // Definir el esquema de validación
 const formSchema = z.object({
@@ -283,27 +283,32 @@ export default function ContactForm() {
                 </FormItem>
               )}
             />
-            {/*Caja de reCaptcha*/}
-            <div className="text-xs text-muted-foreground mt-2">
-              Este sitio está protegido por reCAPTCHA y aplican la{" "}
-              <a
-                href="https://policies.google.com/privacy"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline hover:text-primary transition-colors"
+
+            <div className="text-xs text-muted-foreground text-center mt-2">
+              Al enviar, acepto los{" "}
+              <Link 
+                href="/terms-of-service" 
+                target="_blank" 
+                className="underline hover:text-primary"
+              >
+                Términos y Condiciones
+              </Link>
+              {" "} y {" "}
+              <Link 
+                href="/privacy-policy" 
+                target="_blank" 
+                className="underline hover:text-primary"
               >
                 Política de Privacidad
-              </a>{" "}
-              y los{" "}
-              <a
-                href="https://policies.google.com/terms"
+              </Link>
+              {" & "}
+              <Link
+                href="https://policies.google.com/privacy"
                 target="_blank"
-                rel="noopener noreferrer"
-                className="underline hover:text-primary transition-colors"
+                className="underline hover:text-primary"
               >
-                Términos de Servicio
-              </a>{" "}
-              de Google.
+                reCAPTCHA
+              </Link>
             </div>
 
             <Button
