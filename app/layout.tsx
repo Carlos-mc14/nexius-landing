@@ -107,7 +107,27 @@ export default async function RootLayout({
                     <h3 className="text-lg font-bold">Nexius</h3>
                     <p className="text-muted-foreground">Soluciones digitales que transforman tu negocio.</p>
                     
-                    <ThemeToggle />
+                    <div className="flex space-x-2">
+                      <div className="text-sm">
+                        <span className="text-muted-foreground">•</span>
+                        <Link 
+                          href="/terms-of-service" 
+                          className="underline text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          Términos y Condiciones
+                        </Link>
+                        <br />
+                        <span className="text-muted-foreground">•</span>
+                        <Link 
+                          href="/privacy-policy" 
+                          className="underline text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          Política de Privacidad
+                        </Link>
+                      </div>
+                    </div>
+                    
+                    <ThemeToggle/>
 
                   </div>
                   <div className="space-y-4">
