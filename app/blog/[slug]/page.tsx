@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { ArrowLeft, Calendar, Clock, Share2, Bookmark, ThumbsUp } from "lucide-react"
+import { MarkdownContent } from "@/components/markdown-content"
 import type { Metadata } from "next"
 
 interface BlogPostPageProps {
@@ -129,9 +130,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 </div>
               </div>
 
-              {/* Article Content */}
+              {/* Article Content - Fixed to use MarkdownContent component */}
               <div className="prose prose-slate dark:prose-invert max-w-none">
-                <div dangerouslySetInnerHTML={{ __html: post.content }} />
+                <MarkdownContent content={post.content} />
               </div>
 
               {/* Tags */}
