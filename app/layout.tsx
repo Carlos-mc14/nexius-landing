@@ -4,7 +4,7 @@ import Navbar from "@/components/navbar"
 import { RecaptchaProvider } from "@/components/recaptcha-provider"
 import type { Metadata, Viewport } from "next"
 import { Inter } from "next/font/google"
-import { Github, Linkedin, Facebook, Phone } from "lucide-react"
+import { Github, Linkedin, Facebook, Phone, MessageCircle } from "lucide-react"
 import Link from "next/link"
 import "./globals.css"
 import { Toaster } from "@/components/ui/toaster"
@@ -100,6 +100,26 @@ export default async function RootLayout({
           <RecaptchaProvider>
             <Navbar />
             <main className="pt-16 w-full overflow-x-hidden">{children}</main>
+            
+            {/* Botón flotante de WhatsApp */}
+            <div className="fixed bottom-6 right-6 z-50">
+              <a
+                href="https://wa.me/message/CAFPDSATMVIQA1"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                aria-label="Contactar por WhatsApp"
+              >
+                <MessageCircle size={24} className="mr-2" />
+                <span className="hidden sm:inline-block font-medium">
+                  Contáctanos por WhatsApp
+                </span>
+                <span className="sm:hidden font-medium">
+                  WhatsApp
+                </span>
+              </a>
+            </div>
+
             <footer className="w-full py-12 bg-muted/50 dark:bg-muted/20 border-t border-border">
               <div className="max-w-[1280px] mx-auto px-4 md:px-6">
                 <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
