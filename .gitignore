@@ -31,3 +31,6 @@ next-env.d.ts
 #zip & rar
 *.zip
 *.rar
+
+#py
+*.py

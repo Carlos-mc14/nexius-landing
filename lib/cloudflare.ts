@@ -10,109 +10,217 @@ const validateCloudflareEnv = () => {
   return true
 }
 
-// Función para obtener analíticas desde Cloudflare
-export async function getCloudflareAnalytics() {
+// Tipos para las analíticas
+export type TimeRange = "24h" | "7d" | "30d"
+
+export interface AnalyticsData {
+  visitors: {
+    total: number
+    change: number
+  }
+  pageviews: {
+    total: number
+    change: number
+  }
+  bounceRate: {
+    rate: number
+    change: number
+  }
+  trafficByTime: {
+    labels: string[]
+    values: number[]
+  }
+  topPages: {
+    labels: string[]
+    values: number[]
+  }
+  deviceDistribution: {
+    labels: string[]
+    values: number[]
+    colors: string[]
+  }
+  browserDistribution: {
+    labels: string[]
+    values: number[]
+    colors: string[]
+  }
+  trafficSources: {
+    labels: string[]
+    values: number[]
+    colors: string[]
+  }
+  countries: {
+    labels: string[]
+    values: number[]
+  }
+}
+
+// Función para obtener analíticas desde Cloudflare con filtro de tiempo
+export async function getCloudflareAnalytics(timeRange: TimeRange = "30d"): Promise<AnalyticsData> {
   try {
     // En desarrollo o si faltan variables, usar datos simulados
     if (!validateCloudflareEnv()) {
       console.info("🔍 Usando datos simulados para Cloudflare")
-      return getMockCloudflareAnalytics()
+      return getMockCloudflareAnalytics(timeRange)
     }
 
     // Implementación real con la API GraphQL de Cloudflare
     const zoneId = process.env.CLOUDFLARE_ZONE_ID
     const apiToken = process.env.CLOUDFLARE_API_TOKEN
 
-    // Obtener fecha actual y fecha hace 30 días
+    // Calcular fechas según el rango de tiempo seleccionado
     const now = new Date()
-    const thirtyDaysAgo = new Date(now)
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+    let startDate: Date
+    let groupBy: string
+    let requestsGroup: string
 
-    // Formatear fechas para la API de Cloudflare (ISO string)
-    const endDate = now.toISOString().split("T")[0]
-    const startDate = thirtyDaysAgo.toISOString().split("T")[0]
+    switch (timeRange) {
+      case "24h":
+        startDate = new Date(now)
+        startDate.setHours(startDate.getHours() - 24)
+        groupBy = "datetimeHour"
+        requestsGroup = "httpRequests1hGroups"
+        break
+      case "7d":
+        startDate = new Date(now)
+        startDate.setDate(startDate.getDate() - 7)
+        groupBy = "date"
+        requestsGroup = "httpRequests1dGroups"
+        break
+      case "30d":
+      default:
+        startDate = new Date(now)
+        startDate.setDate(startDate.getDate() - 30)
+        groupBy = "date"
+        requestsGroup = "httpRequests1dGroups"
+        break
+    }
 
-    // Obtener fecha hace 60 días para comparación
-    const sixtyDaysAgo = new Date(thirtyDaysAgo)
-    sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 30)
-    const prevStartDate = sixtyDaysAgo.toISOString().split("T")[0]
-    const prevEndDate = thirtyDaysAgo.toISOString().split("T")[0]
+    // Formatear fechas para la API de Cloudflare
+    const endDateStr = now.toISOString()
+    const startDateStr = startDate.toISOString()
 
-    // Consulta GraphQL para obtener datos de analítica
+    // Calcular fechas para el período anterior (para comparación)
+    const prevEndDate = new Date(startDate)
+    const prevStartDate = new Date(prevEndDate)
+
+    if (timeRange === "24h") {
+      prevStartDate.setHours(prevStartDate.getHours() - 24)
+    } else if (timeRange === "7d") {
+      prevStartDate.setDate(prevStartDate.getDate() - 7)
+    } else {
+      prevStartDate.setDate(prevStartDate.getDate() - 30)
+    }
+
+    const prevEndDateStr = prevEndDate.toISOString()
+    const prevStartDateStr = prevStartDate.toISOString()
+
+    // Construir la consulta GraphQL según el período seleccionado
     const query = `
-        query AnalyticsData($zoneId: String!, $startDate: Date!, $endDate: Date!, $prevStartDate: Date!, $prevEndDate: Date!) {
-          # Visitantes y páginas vistas actuales
-          viewer {
-            zones(filter: { zoneTag: $zoneId }) {
-              httpRequests1dGroups(
-                limit: 1000
-                filter: { date_geq: $startDate, date_leq: $endDate }
-                orderBy: [date_ASC]
-              ) {
-                dimensions {
-                  date
-                }
-                sum {
-                  countryMap {
-                    clientCountryName
-                    requests
-                  }
+      query AnalyticsData($zoneId: String!, $startDate: String!, $endDate: String!, $prevStartDate: String!, $prevEndDate: String!) {
+        viewer {
+          zones(filter: { zoneTag: $zoneId }) {
+            # Datos del período actual
+            ${requestsGroup}(
+              limit: 1000
+              filter: { datetime_geq: $startDate, datetime_lt: $endDate }
+              orderBy: [${groupBy === "date" ? "date_ASC" : "datetimeHour_ASC"}]
+            ) {
+              dimensions {
+                ${groupBy}
+              }
+              sum {
+                requests
+                pageViews
+              }
+              uniq {
+                uniques
+              }
+              # Datos por país
+              sum {
+                countryMap {
+                  clientCountryName
+                  requests
                   pageViews
-                  uniques
-                  browserMap {
-                    pageViews
-                    uaBrowserFamily
-                  }
-                  clientSSLMap {
-                    requests
-                    clientSSL
-                  }
+                  bytes
+                  threats
                 }
               }
-              
-              # Datos para comparación con período anterior
-              previousPeriod: httpRequests1dGroups(
-                limit: 1
-                filter: { date_geq: $prevStartDate, date_leq: $prevEndDate }
-              ) {
-                sum {
+              # Datos por navegador
+              sum {
+                browserMap {
+                  uaBrowserFamily
                   pageViews
-                  uniques
                 }
               }
-              
-              # Páginas más visitadas
-              topPaths: httpRequests1dGroups(
-                limit: 5
-                filter: { date_geq: $startDate, date_leq: $endDate }
-                orderBy: [sum_requests_DESC]
-              ) {
-                dimensions {
-                  requestPath
-                }
-                sum {
+              # Datos por dispositivo
+              sum {
+                clientDeviceTypeMap {
+                  clientDeviceType
                   requests
                 }
               }
-              
-              # Fuentes de tráfico
-              topSources: httpRequests1dGroups(
-                limit: 5
-                filter: { date_geq: $startDate, date_leq: $endDate }
-                orderBy: [sum_requests_DESC]
-              ) {
-                dimensions {
-                  refererHost
+              # Datos por sistema operativo
+              sum {
+                clientSSLMap {
+                  clientSSL
+                  requests
                 }
-                sum {
+              }
+              # Datos por fuente de tráfico
+              sum {
+                ipClassMap {
+                  ipType
                   requests
                 }
               }
             }
+            
+            # Datos para comparación con período anterior
+            prev${requestsGroup}(
+              limit: 1000
+              filter: { datetime_geq: $prevStartDate, datetime_lt: $prevEndDate }
+            ) {
+              sum {
+                requests
+                pageViews
+              }
+              uniq {
+                uniques
+              }
+            }
+            
+            # Páginas más visitadas
+            topPaths: ${requestsGroup}(
+              limit: 10
+              filter: { datetime_geq: $startDate, datetime_lt: $endDate }
+              orderBy: [sum_pageViews_DESC]
+            ) {
+              dimensions {
+                requestPath
+              }
+              sum {
+                pageViews
+              }
+            }
+            
+            # Fuentes de tráfico
+            topSources: ${requestsGroup}(
+              limit: 10
+              filter: { datetime_geq: $startDate, datetime_lt: $endDate }
+              orderBy: [sum_requests_DESC]
+            ) {
+              dimensions {
+                refererHost
+              }
+              sum {
+                requests
+              }
+            }
           }
         }
-      `
-
+      }
+    `
 
     // Realizar la petición a la API GraphQL de Cloudflare
     const response = await fetch("https://api.cloudflare.com/client/v4/graphql", {
@@ -125,10 +233,10 @@ export async function getCloudflareAnalytics() {
         query,
         variables: {
           zoneId,
-          startDate,
-          endDate,
-          prevStartDate,
-          prevEndDate,
+          startDate: startDateStr,
+          endDate: endDateStr,
+          prevStartDate: prevStartDateStr,
+          prevEndDate: prevEndDateStr,
         },
       }),
       next: { revalidate: 3600 }, // Revalidar datos cada hora
@@ -142,21 +250,21 @@ export async function getCloudflareAnalytics() {
 
     // Verificar si hay errores en la respuesta
     if (result.errors) {
-      //console.error("Errores en la respuesta GraphQL:", result.errors)
+      console.error("Errores en la respuesta GraphQL:", result.errors)
       throw new Error("Error en la consulta GraphQL de Cloudflare")
     }
 
     // Procesar los datos recibidos
-    return processCloudflareData(result.data)
+    return processCloudflareData(result.data, timeRange)
   } catch (error) {
-    //console.error("Error fetching Cloudflare analytics:", error)
+    console.error("Error fetching Cloudflare analytics:", error)
     // Fallback a datos simulados en caso de error
-    return getMockCloudflareAnalytics()
+    return getMockCloudflareAnalytics(timeRange)
   }
 }
 
 // Procesar los datos recibidos de Cloudflare
-function processCloudflareData(data: any) {
+function processCloudflareData(data: any, timeRange: TimeRange): AnalyticsData {
   try {
     const zones = data.viewer.zones
     if (!zones || zones.length === 0) {
@@ -164,25 +272,43 @@ function processCloudflareData(data: any) {
     }
 
     const zone = zones[0]
-    const httpRequests = zone.httpRequests1dGroups
+    const requestsGroupKey = timeRange === "24h" ? "httpRequests1hGroups" : "httpRequests1dGroups"
+    const prevRequestsGroupKey = `prev${requestsGroupKey}`
+
+    const httpRequests = zone[requestsGroupKey]
+    const prevHttpRequests = zone[prevRequestsGroupKey]
 
     if (!httpRequests || httpRequests.length === 0) {
       throw new Error("No se encontraron datos de solicitudes HTTP")
     }
 
-    // Datos actuales
-    const currentPeriod = httpRequests.filter((group: any) => group.dimensions)
-
-    // Datos para comparación con período anterior
-    const previousPeriod = httpRequests.find((group: any) => !group.dimensions)
-
     // Calcular totales
-    const totalVisitors = currentPeriod.reduce((sum: number, day: any) => sum + day.sum.uniques, 0)
-    const totalPageviews = currentPeriod.reduce((sum: number, day: any) => sum + day.sum.pageViews, 0)
+    let totalVisitors = 0
+    let totalPageviews = 0
+
+    httpRequests.forEach((group: any) => {
+      if (group.uniq && group.uniq.uniques) {
+        totalVisitors += group.uniq.uniques
+      }
+      if (group.sum && group.sum.pageViews) {
+        totalPageviews += group.sum.pageViews
+      }
+    })
 
     // Datos del período anterior para comparación
-    const prevTotalVisitors = previousPeriod?.sum.uniques || 0
-    const prevTotalPageviews = previousPeriod?.sum.pageViews || 0
+    let prevTotalVisitors = 0
+    let prevTotalPageviews = 0
+
+    if (prevHttpRequests && prevHttpRequests.length > 0) {
+      prevHttpRequests.forEach((group: any) => {
+        if (group.uniq && group.uniq.uniques) {
+          prevTotalVisitors += group.uniq.uniques
+        }
+        if (group.sum && group.sum.pageViews) {
+          prevTotalPageviews += group.sum.pageViews
+        }
+      })
+    }
 
     // Calcular cambios porcentuales
     const visitorsChange = calculatePercentageChange(totalVisitors, prevTotalVisitors)
@@ -195,91 +321,166 @@ function processCloudflareData(data: any) {
 
     // Preparar datos para gráficos
 
-    // Tráfico por día
-    const trafficByDay = {
-      labels: currentPeriod.map((day: any) => formatDate(day.dimensions.date)),
-      values: currentPeriod.map((day: any) => day.sum.uniques),
-    }
+    // Tráfico por tiempo (hora o día según el rango)
+    const timeLabels: string[] = []
+    const timeValues: number[] = []
+
+    httpRequests.forEach((group: any) => {
+      if (group.dimensions) {
+        const timeKey = timeRange === "24h" ? "datetimeHour" : "date"
+        const timeValue = group.dimensions[timeKey]
+
+        if (timeValue) {
+          const date = new Date(timeValue)
+          let formattedTime = ""
+
+          if (timeRange === "24h") {
+            formattedTime = date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+          } else {
+            formattedTime = date.toLocaleDateString([], { day: "numeric", month: "short" })
+          }
+
+          timeLabels.push(formattedTime)
+          timeValues.push(group.uniq?.uniques || 0)
+        }
+      }
+    })
 
     // Páginas más visitadas
     const topPages = {
-      labels: zone.topPaths.map((path: any) => path.dimensions.requestPath || "/"),
-      values: zone.topPaths.map((path: any) => path.sum.requests),
+      labels: zone.topPaths.map((path: any) => {
+        const pagePath = path.dimensions?.requestPath || "/"
+        // Acortar rutas largas para mejor visualización
+        return pagePath.length > 20 ? pagePath.substring(0, 17) + "..." : pagePath
+      }),
+      values: zone.topPaths.map((path: any) => path.sum?.pageViews || 0),
     }
 
-    // Distribución de dispositivos (basado en navegadores como aproximación)
-    const browserData = currentPeriod.reduce((acc: any, day: any) => {
-      if (day.sum.browserMap) {
-        day.sum.browserMap.forEach((browser: any) => {
-          const name = browser.uaBrowserFamily || "Otros"
-          if (!acc[name]) acc[name] = 0
-          acc[name] += browser.pageViews
+    // Recopilar datos de dispositivos
+    const deviceData: { [key: string]: number } = {}
+
+    httpRequests.forEach((group: any) => {
+      if (group.sum && group.sum.clientDeviceTypeMap) {
+        group.sum.clientDeviceTypeMap.forEach((device: any) => {
+          const deviceType = device.clientDeviceType || "Desconocido"
+          if (!deviceData[deviceType]) deviceData[deviceType] = 0
+          deviceData[deviceType] += device.requests
         })
       }
-      return acc
-    }, {})
-
-    // Agrupar navegadores en categorías de dispositivos (aproximación)
-    const deviceMap = {
-      "Chrome Mobile": "Móvil",
-      Android: "Móvil",
-      "Mobile Safari": "Móvil",
-      Chrome: "Desktop",
-      Firefox: "Desktop",
-      Safari: "Desktop",
-      Edge: "Desktop",
-      Opera: "Desktop",
-      IE: "Desktop",
-      "Samsung Internet": "Móvil",
-      "Opera Mini": "Móvil",
-      "UC Browser": "Móvil",
-      iPad: "Tablet",
-    }
-
-    const deviceData: { [key: string]: number } = {}
-    Object.entries(browserData as { [key: string]: number }).forEach(([browser, views]: [string, number]) => {
-      const deviceType = deviceMap[browser as keyof typeof deviceMap] || "Otros"
-      if (!deviceData[deviceType]) deviceData[deviceType] = 0
-      deviceData[deviceType] += views
     })
 
-    const deviceDistribution = {
-      labels: Object.keys(deviceData),
-      values: Object.values(deviceData),
-      colors: ["#4f46e5", "#10b981", "#f59e0b"],
-    }
-
-    // Fuentes de tráfico
-    const sourcesData = zone.topSources.reduce((acc: { [key: string]: number }, source: any) => {
-      const host = source.dimensions.refererHost || "Directo"
-
-      // Categorizar fuentes
-      let category = "Referral"
-      if (host === "Directo" || host === "") {
-        category = "Directo"
-      } else if (host.includes("google") || host.includes("bing") || host.includes("yahoo")) {
-        category = "Orgánico"
-      } else if (
-        host.includes("facebook") ||
-        host.includes("instagram") ||
-        host.includes("twitter") ||
-        host.includes("linkedin")
-      ) {
-        category = "Redes Sociales"
-      } else if (host.includes("mail") || host.includes("outlook") || host.includes("gmail")) {
-        category = "Email"
+    // Si no hay datos de dispositivos, usar datos de navegadores como aproximación
+    if (Object.keys(deviceData).length === 0) {
+      const browserToDevice: { [key: string]: string } = {
+        "Chrome Mobile": "Móvil",
+        Android: "Móvil",
+        "Mobile Safari": "Móvil",
+        Chrome: "Desktop",
+        Firefox: "Desktop",
+        Safari: "Desktop",
+        Edge: "Desktop",
+        Opera: "Desktop",
+        IE: "Desktop",
+        "Samsung Internet": "Móvil",
+        "Opera Mini": "Móvil",
+        "UC Browser": "Móvil",
+        iPad: "Tablet",
       }
 
-      if (!acc[category]) acc[category] = 0
-      acc[category] += source.sum.requests
-      return acc
-    }, {})
+      httpRequests.forEach((group: any) => {
+        if (group.sum && group.sum.browserMap) {
+          group.sum.browserMap.forEach((browser: any) => {
+            const browserName = browser.uaBrowserFamily || "Otros"
+            const deviceType = browserToDevice[browserName] || "Otros"
 
-    // Asegurar que tenemos todas las categorías comunes
-    const defaultSources = ["Orgánico", "Directo", "Redes Sociales", "Referral", "Email"]
-    defaultSources.forEach((source) => {
-      if (!sourcesData[source]) sourcesData[source] = 0
+            if (!deviceData[deviceType]) deviceData[deviceType] = 0
+            deviceData[deviceType] += browser.pageViews
+          })
+        }
+      })
+    }
+
+    // Asegurar que tenemos las categorías principales de dispositivos
+    const defaultDevices = ["Desktop", "Móvil", "Tablet", "Otros"]
+    defaultDevices.forEach((device) => {
+      if (!deviceData[device]) deviceData[device] = 0
     })
+
+    // Ordenar dispositivos por número de visitas
+    const sortedDevices = Object.entries(deviceData)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+
+    const deviceDistribution = {
+      labels: sortedDevices.map((device) => device[0]),
+      values: sortedDevices.map((device) => device[1]),
+      colors: ["#4f46e5", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"],
+    }
+
+    // Recopilar datos de navegadores
+    const browserData: { [key: string]: number } = {}
+
+    httpRequests.forEach((group: any) => {
+      if (group.sum && group.sum.browserMap) {
+        group.sum.browserMap.forEach((browser: any) => {
+          const browserName = browser.uaBrowserFamily || "Otros"
+          if (!browserData[browserName]) browserData[browserName] = 0
+          browserData[browserName] += browser.pageViews
+        })
+      }
+    })
+
+    // Ordenar navegadores por número de visitas y tomar los 5 principales
+    const sortedBrowsers = Object.entries(browserData)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+
+    const browserDistribution = {
+      labels: sortedBrowsers.map((browser) => browser[0]),
+      values: sortedBrowsers.map((browser) => browser[1]),
+      colors: ["#4f46e5", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"],
+    }
+
+    // Fuentes de tráfico (aproximación basada en referrers)
+    const sourcesData: { [key: string]: number } = {
+      Orgánico: 0,
+      Directo: 0,
+      "Redes Sociales": 0,
+      Referral: 0,
+      Email: 0,
+    }
+
+    // Si tenemos datos de fuentes, procesarlos
+    if (zone.topSources && zone.topSources.length > 0) {
+      zone.topSources.forEach((source: any) => {
+        const host = source.dimensions?.refererHost || "Directo"
+        let category = "Referral"
+
+        if (host === "Directo" || host === "") {
+          category = "Directo"
+        } else if (host.includes("google") || host.includes("bing") || host.includes("yahoo")) {
+          category = "Orgánico"
+        } else if (
+          host.includes("facebook") ||
+          host.includes("instagram") ||
+          host.includes("twitter") ||
+          host.includes("linkedin")
+        ) {
+          category = "Redes Sociales"
+        } else if (host.includes("mail") || host.includes("outlook") || host.includes("gmail")) {
+          category = "Email"
+        }
+
+        sourcesData[category] += source.sum?.requests || 0
+      })
+    } else {
+      // Datos simulados si no hay información real
+      sourcesData["Orgánico"] = 45
+      sourcesData["Directo"] = 25
+      sourcesData["Redes Sociales"] = 15
+      sourcesData["Referral"] = 10
+      sourcesData["Email"] = 5
+    }
 
     const trafficSources = {
       labels: Object.keys(sourcesData),
@@ -288,20 +489,21 @@ function processCloudflareData(data: any) {
     }
 
     // Países
-    const countriesData = currentPeriod.reduce((acc: { [key: string]: number }, day: any) => {
-      if (day.sum.countryMap) {
-        day.sum.countryMap.forEach((country: any) => {
-          const name = country.clientCountryName || "Desconocido"
-          if (!acc[name]) acc[name] = 0
-          acc[name] += country.requests
+    const countriesData: { [key: string]: number } = {}
+
+    httpRequests.forEach((group: any) => {
+      if (group.sum && group.sum.countryMap) {
+        group.sum.countryMap.forEach((country: any) => {
+          const countryName = country.clientCountryName || "Desconocido"
+          if (!countriesData[countryName]) countriesData[countryName] = 0
+          countriesData[countryName] += country.requests
         })
       }
-      return acc
-    }, {})
+    })
 
     // Ordenar países por número de visitas y tomar los 5 principales
     const topCountries = Object.entries(countriesData)
-      .sort((a, b) => (b[1] as number) - (a[1] as number))
+      .sort((a, b) => b[1] - a[1])
       .slice(0, 5)
 
     const countries = {
@@ -323,15 +525,19 @@ function processCloudflareData(data: any) {
         rate: bounceRate,
         change: bounceRateChange,
       },
-      trafficByDay,
+      trafficByTime: {
+        labels: timeLabels,
+        values: timeValues,
+      },
       topPages,
       deviceDistribution,
+      browserDistribution,
       trafficSources,
       countries,
     }
   } catch (error) {
     console.error("Error procesando datos de Cloudflare:", error)
-    return getMockCloudflareAnalytics()
+    return getMockCloudflareAnalytics(timeRange)
   }
 }
 
@@ -341,73 +547,67 @@ function calculatePercentageChange(current: number, previous: number): number {
   return Number.parseFloat((((current - previous) / previous) * 100).toFixed(1))
 }
 
-// Función auxiliar para formatear fechas
-function formatDate(dateString: string): string {
-  const date = new Date(dateString)
-  return `${date.getDate()} ${date.toLocaleString("default", { month: "short" })}`
-}
-
 // Datos simulados para el ejemplo o desarrollo
-function getMockCloudflareAnalytics() {
+function getMockCloudflareAnalytics(timeRange: TimeRange): AnalyticsData {
+  // Generar datos simulados según el rango de tiempo
+  const labels: string[] = []
+  const values: number[] = []
+
+  if (timeRange === "24h") {
+    // Datos por hora para las últimas 24 horas
+    for (let i = 0; i < 24; i++) {
+      const hour = i.toString().padStart(2, "0") + ":00"
+      labels.push(hour)
+      values.push(Math.floor(Math.random() * 100) + 20)
+    }
+  } else if (timeRange === "7d") {
+    // Datos por día para los últimos 7 días
+    const days = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"]
+    for (let i = 0; i < 7; i++) {
+      labels.push(days[i])
+      values.push(Math.floor(Math.random() * 500) + 100)
+    }
+  } else {
+    // Datos por día para los últimos 30 días
+    for (let i = 1; i <= 30; i++) {
+      labels.push(`${i} Nov`)
+      values.push(Math.floor(Math.random() * 500) + 100)
+    }
+  }
+
+  // Ajustar totales según el rango de tiempo
+  const totalMultiplier = timeRange === "24h" ? 1 : timeRange === "7d" ? 7 : 30
+
   return {
     visitors: {
-      total: 12458,
+      total: 12458 * (totalMultiplier / 30),
       change: 8.3,
     },
     pageviews: {
-      total: 35721,
+      total: 35721 * (totalMultiplier / 30),
       change: 12.7,
     },
     bounceRate: {
       rate: 42.5,
       change: -3.2,
     },
-    trafficByDay: {
-      labels: [
-        "1 Nov",
-        "2 Nov",
-        "3 Nov",
-        "4 Nov",
-        "5 Nov",
-        "6 Nov",
-        "7 Nov",
-        "8 Nov",
-        "9 Nov",
-        "10 Nov",
-        "11 Nov",
-        "12 Nov",
-        "13 Nov",
-        "14 Nov",
-        "15 Nov",
-        "16 Nov",
-        "17 Nov",
-        "18 Nov",
-        "19 Nov",
-        "20 Nov",
-        "21 Nov",
-        "22 Nov",
-        "23 Nov",
-        "24 Nov",
-        "25 Nov",
-        "26 Nov",
-        "27 Nov",
-        "28 Nov",
-        "29 Nov",
-        "30 Nov",
-      ],
-      values: [
-        320, 350, 410, 450, 470, 380, 360, 390, 420, 450, 480, 520, 540, 500, 480, 460, 430, 410, 390, 410, 430, 450,
-        470, 490, 510, 530, 550, 570, 590, 610,
-      ],
+    trafficByTime: {
+      labels,
+      values,
     },
     topPages: {
       labels: ["/", "/servicios", "/portafolio", "/equipo", "/contacto"],
-      values: [15200, 8500, 6300, 3200, 2500],
+      values: [15200, 8500, 6300, 3200, 2500].map((v) => v * (totalMultiplier / 30)),
     },
     deviceDistribution: {
       labels: ["Móvil", "Desktop", "Tablet"],
       values: [65, 30, 5],
       colors: ["#4f46e5", "#10b981", "#f59e0b"],
+    },
+    browserDistribution: {
+      labels: ["Chrome", "Safari", "Firefox", "Edge", "Otros"],
+      values: [45, 25, 15, 10, 5],
+      colors: ["#4f46e5", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"],
     },
     trafficSources: {
       labels: ["Orgánico", "Directo", "Redes Sociales", "Referral", "Email"],
@@ -416,8 +616,7 @@ function getMockCloudflareAnalytics() {
     },
     countries: {
       labels: ["Perú", "México", "Colombia", "España", "Chile"],
-      values: [7500, 2100, 1400, 850, 600],
+      values: [7500, 2100, 1400, 850, 600].map((v) => v * (totalMultiplier / 30)),
     },
   }
 }
-

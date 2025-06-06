@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, LayoutDashboard, Newspaper, Users, FolderKanban, Search } from "lucide-react"
+import { Home, LayoutDashboard, Newspaper, Users, FolderKanban, Search, MessageSquare } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
@@ -38,6 +38,12 @@ export function DashboardNav({ className }: DashboardNavProps) {
       href: "/dashboard/blog",
       icon: <Newspaper className="mr-2 h-4 w-4" />,
       pattern: /^\/dashboard\/blog/,
+    },
+    {
+      title: "WhatsApp",
+      href: "/dashboard/whatsapp",
+      icon: <MessageSquare className="mr-2 h-4 w-4" />,
+      pattern: /^\/dashboard\/whatsapp/,
     },
     {
       title: "Equipo",
