@@ -9,7 +9,7 @@ import type {
 } from "@/types/whatsapp"
 
 const BASE_URL = "https://api.nexius.lat"
-const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN || ""
+const VERIFY_TOKEN = process.env.NEXT_PUBLIC_WHATSAPP_VERIFY_TOKEN || "TOKEN"
 
 class WhatsAppAPI {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
