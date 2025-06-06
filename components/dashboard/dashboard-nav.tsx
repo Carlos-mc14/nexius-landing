@@ -2,85 +2,88 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, LayoutDashboard, Newspaper, Users, FolderKanban, Search, MessageSquare } from "lucide-react"
-
 import { cn } from "@/lib/utils"
-import { buttonVariants } from "@/components/ui/button"
+import {
+  LayoutDashboard,
+  FileText,
+  Users,
+  FolderOpen,
+  Settings,
+  Search,
+  MessageSquare,
+  Phone,
+  BarChart3,
+  UserCheck,
+} from "lucide-react"
 
-interface DashboardNavProps {
-  className?: string
-}
+const navigation = [
+  {
+    name: "Dashboard",
+    href: "/dashboard",
+    icon: LayoutDashboard,
+  },
+  {
+    name: "Blog",
+    href: "/dashboard/blog",
+    icon: FileText,
+  },
+  {
+    name: "Proyectos",
+    href: "/dashboard/projects",
+    icon: FolderOpen,
+  },
+  {
+    name: "Equipo",
+    href: "/dashboard/team",
+    icon: Users,
+  },
+  {
+    name: "Usuarios",
+    href: "/dashboard/users",
+    icon: UserCheck,
+  },
+  {
+    name: "Homepage",
+    href: "/dashboard/homepage",
+    icon: LayoutDashboard,
+  },
+  {
+    name: "SEO",
+    href: "/dashboard/seo",
+    icon: Search,
+  },
+  {
+    name: "WhatsApp",
+    href: "/dashboard/whatsapp",
+    icon: MessageSquare,
+  },
+]
 
-export function DashboardNav({ className }: DashboardNavProps) {
+export function DashboardNav() {
   const pathname = usePathname()
 
-  const navItems = [
-    {
-      title: "Dashboard",
-      href: "/dashboard",
-      icon: <LayoutDashboard className="mr-2 h-4 w-4" />,
-      pattern: /^\/dashboard$/,
-    },
-    {
-      title: "Página de inicio",
-      href: "/dashboard/homepage",
-      icon: <Home className="mr-2 h-4 w-4" />,
-      pattern: /^\/dashboard\/homepage/,
-    },
-    {
-      title: "Proyectos",
-      href: "/dashboard/projects",
-      icon: <FolderKanban className="mr-2 h-4 w-4" />,
-      pattern: /^\/dashboard\/projects/,
-    },
-    {
-      title: "Blog",
-      href: "/dashboard/blog",
-      icon: <Newspaper className="mr-2 h-4 w-4" />,
-      pattern: /^\/dashboard\/blog/,
-    },
-    {
-      title: "WhatsApp",
-      href: "/dashboard/whatsapp",
-      icon: <MessageSquare className="mr-2 h-4 w-4" />,
-      pattern: /^\/dashboard\/whatsapp/,
-    },
-    {
-      title: "Equipo",
-      href: "/dashboard/team",
-      icon: <Users className="mr-2 h-4 w-4" />,
-      pattern: /^\/dashboard\/team/,
-    },
-    {
-      title: "Usuarios",
-      href: "/dashboard/users",
-      icon: <Users className="mr-2 h-4 w-4" />,
-      pattern: /^\/dashboard\/users/,
-    },
-    {
-      title: "SEO",
-      href: "/dashboard/seo",
-      icon: <Search className="mr-2 h-4 w-4" />,
-      pattern: /^\/dashboard\/seo/,
-    },
-  ]
-
   return (
-    <nav className={cn("flex flex-col space-y-1", className)}>
-      {navItems.map((item) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          className={cn(
-            buttonVariants({ variant: "ghost" }),
-            item.pattern.test(pathname) ? "bg-muted hover:bg-muted" : "hover:bg-transparent hover:underline",
-            "justify-start",
-          )}
-        >
-          {item.icon}
-          {item.title}
-        </Link>
-      ))}
+    <nav className="space-y-2">
+      {navigation.map((item) => {
+        const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
+
+        return (
+          <div key={item.name}>
+            <Link
+              href={item.href}
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                isActive
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
+              )}
+            >
+              <item.icon className="h-4 w-4" />
+              {item.name}
+            </Link>
+          </div>
+        )
+      })}
     </nav>
   )
 }
