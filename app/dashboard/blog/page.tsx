@@ -23,6 +23,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 
+export const dynamic = "force-dynamic"
+
 export default function BlogDashboardPage() {
   const [allPosts, setAllPosts] = useState<any[]>([])
   const [publishedPosts, setPublishedPosts] = useState<any[]>([])

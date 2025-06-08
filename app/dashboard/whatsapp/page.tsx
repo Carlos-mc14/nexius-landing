@@ -48,12 +48,13 @@ import {
   Mail,
   Building,
   Calendar,
-  ArrowUpRight,
   ArchiveRestore,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useMobile } from "@/hooks/use-mobile"
 import type { Stats, Lead, Usuario, Conversacion, SesionManual } from "@/types/whatsapp"
+
+export const dynamic = "force-dynamic"
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://api.nexius.lat"
 const VERIFY_TOKEN = process.env.NEXT_PUBLIC_WHATSAPP_VERIFY_TOKEN || "tu_verify_token"
@@ -912,7 +913,6 @@ export default function WhatsAppDashboard() {
                             <p className="font-medium">{user.nombre || user.numero}</p>
                             <p className="text-sm text-gray-500">{user.empresa || user.numero}</p>
                           </div>
-                          {selectedUser === user.numero && <ArrowUpRight className="ml-auto h-4 w-4 text-blue-500" />}
                         </button>
                       ))}
                     </div>
@@ -923,10 +923,9 @@ export default function WhatsAppDashboard() {
               <Card className="lg:col-span-2">
                 <CardHeader className="flex flex-row items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <CardTitle>Conversación</CardTitle>
-                    {selectedUserData && (
-                      <Badge variant="outline">{selectedUserData.nombre || selectedUserData.numero}</Badge>
-                    )}
+                    <CardTitle>
+                    {selectedUserData && (selectedUserData.nombre || selectedUserData.numero)}
+                    </CardTitle>
                   </div>
 
                   {selectedUser && (
