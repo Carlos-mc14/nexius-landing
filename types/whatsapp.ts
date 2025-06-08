@@ -16,8 +16,8 @@ export interface Lead {
   numero: string
   servicio: string
   mensaje: string
-  prioridad: 'normal' | 'alta' | 'urgente'
-  estado: 'nuevo' | 'en_proceso' | 'completado'
+  prioridad: "normal" | "alta" | "urgente"
+  estado: "nuevo" | "en_proceso" | "completado"
   timestamp: string
   usuario_info: {
     nombre: string
@@ -48,10 +48,11 @@ export interface Conversacion {
   _id: string
   numero: string
   mensaje: string
-  tipo: 'recibido' | 'enviado_automatico' | 'enviado_manual'
+  tipo: "recibido" | "enviado_automatico" | "enviado_manual"
   respuesta_bot?: string
   timestamp: string
   en_modo_manual: boolean
+  archivado: boolean
 }
 
 export interface SesionManual {
