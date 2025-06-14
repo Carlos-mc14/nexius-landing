@@ -1,7 +1,9 @@
-'use client'
+"use client"
 
-import { createContext, useContext, useEffect, useState } from 'react'
-import Script from 'next/script'
+import type React from "react"
+
+import { createContext, useContext, useEffect, useState } from "react"
+import Script from "next/script"
 
 // Definir el tipo para el contexto
 type RecaptchaContextType = {
@@ -24,33 +26,46 @@ declare global {
 
 export function RecaptchaProvider({ children }: { children: React.ReactNode }) {
   const [isLoaded, setIsLoaded] = useState(false)
+
   useEffect(() => {
     if (window.grecaptcha) {
       window.grecaptcha.ready(() => {
         setIsLoaded(true)
       })
     }
+
+    // Hide reCAPTCHA badge
+    const style = document.createElement("style")
+    style.innerHTML = `
+      .grecaptcha-badge {
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+      }
+    `
+    document.head.appendChild(style)
+
+    return () => {
+      document.head.removeChild(style)
+    }
   }, [])
-  
+
   // Función para ejecutar reCAPTCHA
   const executeRecaptcha = async (action: string): Promise<string> => {
     if (!isLoaded || !window.grecaptcha) {
-      throw new Error('reCAPTCHA no está cargado')
+      throw new Error("reCAPTCHA no está cargado")
     }
 
     try {
       // Asegurarse de que grecaptcha esté listo
       return new Promise((resolve) => {
         window.grecaptcha.ready(async () => {
-          const token = await window.grecaptcha.execute(
-            process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '',
-            { action }
-          )
+          const token = await window.grecaptcha.execute(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "", { action })
           resolve(token)
         })
       })
     } catch (error) {
-      console.error('Error al ejecutar reCAPTCHA:', error)
+      console.error("Error al ejecutar reCAPTCHA:", error)
       throw error
     }
   }
@@ -78,7 +93,7 @@ export function RecaptchaProvider({ children }: { children: React.ReactNode }) {
 export function useRecaptcha() {
   const context = useContext(RecaptchaContext)
   if (context === undefined) {
-    throw new Error('useRecaptcha debe usarse dentro de un RecaptchaProvider')
+    throw new Error("useRecaptcha debe usarse dentro de un RecaptchaProvider")
   }
   return context
 }

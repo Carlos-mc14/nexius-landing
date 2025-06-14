@@ -18,14 +18,30 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <DashboardHeader user={session.user} />
-      <div className="container flex-1 items-start md:grid md:grid-cols-[220px_1fr] md:gap-6 lg:grid-cols-[240px_1fr] lg:gap-10">
-        <aside className="fixed top-14 z-30 -ml-2 hidden h-[calc(100vh-3.5rem)] w-full shrink-0 md:sticky md:block">
-          <DashboardNav/>
-        </aside>
-        <main className="flex w-full flex-col overflow-hidden py-6">
-          <Suspense fallback={<div className="flex-1 p-8 flex items-center justify-center">Cargando...</div>}>
+    <div className="flex h-screen w-full bg-background">
+      {/* Sidebar */}
+      <aside className="hidden md:flex w-64 bg-background border-r border-border flex-shrink-0">
+        <div className="flex flex-col w-full">
+          <div className="p-4 border-b border-border">
+            <h1 className="text-xl font-bold">NEXIUS Dashboard</h1>
+          </div>
+          <div className="flex-1 overflow-auto">
+            <DashboardNav />
+          </div>
+        </div>
+      </aside>
+
+      {/* Main content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <DashboardHeader user={session.user} />
+        <main className="flex-1 overflow-auto">
+          <Suspense
+            fallback={
+              <div className="flex items-center justify-center h-full">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            }
+          >
             {children}
           </Suspense>
         </main>
