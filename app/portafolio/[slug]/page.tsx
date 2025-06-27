@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator"
 import { ArrowLeft, Calendar, ExternalLink, Github, Tag } from "lucide-react"
 import type { Metadata } from "next"
 import { GalleryWithModal } from "@/components/gallery-with-modal"
+import { MarkdownContent } from "@/components/markdown-content"
 
 interface ProjectPageProps {
   params: Promise<{
@@ -326,12 +327,7 @@ export default async function ProjectPage(props: ProjectPageProps) {
                   <div className="space-y-4">
                     <h2 className="text-2xl font-bold">Sobre el proyecto</h2>
                     <div className="prose prose-slate dark:prose-invert max-w-none">
-                      <p>{project.description}</p>
-
-                      {/* Si hay contenido detallado, mostrarlo aquí */}
-                      {project.fullDescription && (
-                        <div className="mt-4" dangerouslySetInnerHTML={{ __html: project.fullDescription }} />
-                      )}
+                      <MarkdownContent content={project.fullDescription ?? ""} />
                     </div>
                   </div>
 
