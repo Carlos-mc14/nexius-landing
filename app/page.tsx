@@ -25,8 +25,85 @@ import CompletedProjects from "@/components/completed-projects"
 import { getHomepageContent } from "@/lib/homepage"
 import { getLatestBlogPosts } from "@/lib/blog"
 import { formatDate } from "@/lib/utils"
-import { getBlogPosts } from "@/lib/blog"
+import { getSeoConfig } from "@/lib/seo"
+import type { Metadata } from "next"
 
+// 2. FUNCIÓN GENERATEMETADATA - Agregar antes del componente Home()
+export async function generateMetadata(): Promise<Metadata> {
+  const seoConfig = await getSeoConfig()
+  
+  return {
+    title: seoConfig.title,
+    description: seoConfig.description,
+    keywords: seoConfig.keywords,
+    authors: [{ name: "Nexius" }],
+    creator: "Nexius",
+    publisher: "Nexius",
+    formatDetection: {
+      email: false,
+      address: false,
+      telephone: false,
+    },
+    metadataBase: new URL(seoConfig.siteUrl),
+    alternates: {
+      canonical: "/",
+    },
+    openGraph: {
+      title: seoConfig.title,
+      description: seoConfig.description,
+      url: seoConfig.siteUrl,
+      siteName: "Nexius",
+      images: [
+        {
+          url: seoConfig.ogImage,
+          width: 1200,
+          height: 630,
+          alt: seoConfig.title,
+        },
+      ],
+      locale: "es_ES",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: seoConfig.title,
+      description: seoConfig.description,
+      site: seoConfig.twitterHandle,
+      creator: seoConfig.twitterHandle,
+      images: [seoConfig.ogImage],
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
+    },
+    verification: {
+      google: seoConfig.googleAnalyticsId ? "google-site-verification" : undefined,
+    },
+    other: {
+      "theme-color": seoConfig.themeColor,
+      ...(seoConfig.additionalMetaTags?.reduce((acc, tag) => {
+        acc[tag.name] = tag.content
+        return acc
+      }, {} as Record<string, string>) || {}),
+    },
+  }
+}
+
+// 3. FUNCIÓN GENERATEVIEWPORT - Agregar después de generateMetadata
+export function generateViewport() {
+  return {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+  }
+}
 // Disable caching for this page to always show the latest content
 export const revalidate = 0
 
@@ -37,10 +114,92 @@ export default async function Home() {
   // Fetch latest blog posts
   const latestPosts = await getLatestBlogPosts(3)
 
+  // Fetch SEO config - AGREGAR ESTA LÍNEA
+  const seoConfig = await getSeoConfig()
+
   // Destructure sections for easier access
   const { hero, services, testimonials, whyChooseUs } = homepageContent
 
   return (
+    <>
+    {/* JSON-LD Schema - AGREGAR AL INICIO DEL JSX, antes del <main> */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            name: "Nexius",
+            url: seoConfig.siteUrl,
+            logo: `${seoConfig.siteUrl}/logo.png`,
+            description: seoConfig.description,
+            address: {
+              "@type": "PostalAddress",
+              addressCountry: "PE",
+              addressLocality: "Lima",
+            },
+            contactPoint: {
+              "@type": "ContactPoint",
+              telephone: homepageContent.contactInfo?.phone || "+123 456 7890",
+              contactType: "customer service",
+              availableLanguage: ["Spanish", "English"],
+            },
+            sameAs: [
+              homepageContent.contactInfo?.socialLinks?.facebook || "",
+              homepageContent.contactInfo?.socialLinks?.twitter || "",
+              homepageContent.contactInfo?.socialLinks?.instagram || "",
+              homepageContent.contactInfo?.socialLinks?.linkedin || "https://www.linkedin.com/company/nexiuslat/",
+            ].filter(Boolean),
+            "@graph": [
+              {
+                "@type": "WebSite",
+                "@id": `${seoConfig.siteUrl}/#website`,
+                url: seoConfig.siteUrl,
+                name: seoConfig.title,
+                description: seoConfig.description,
+                publisher: {
+                  "@id": `${seoConfig.siteUrl}/#organization`,
+                },
+                potentialAction: [
+                  {
+                    "@type": "SearchAction",
+                    target: {
+                      "@type": "EntryPoint",
+                      urlTemplate: `${seoConfig.siteUrl}/search?q={search_term_string}`,
+                    },
+                    "query-input": "required name=search_term_string",
+                  },
+                ],
+                inLanguage: "es-ES",
+              },
+              {
+                "@type": "WebPage",
+                "@id": `${seoConfig.siteUrl}/#webpage`,
+                url: seoConfig.siteUrl,
+                name: seoConfig.title,
+                isPartOf: {
+                  "@id": `${seoConfig.siteUrl}/#website`,
+                },
+                about: {
+                  "@id": `${seoConfig.siteUrl}/#organization`,
+                },
+                description: seoConfig.description,
+                breadcrumb: {
+                  "@id": `${seoConfig.siteUrl}/#breadcrumb`,
+                },
+                inLanguage: "es-ES",
+                potentialAction: [
+                  {
+                    "@type": "ReadAction",
+                    target: [seoConfig.siteUrl],
+                  },
+                ],
+              },
+            ],
+          }),
+        }}
+      />
+      
     <main className="flex min-h-screen flex-col">
       {/* Hero Section - Modern Design */}
       <section className="relative w-full py-20 md:py-28 lg:py-36 overflow-hidden">
@@ -502,6 +661,7 @@ export default async function Home() {
         </div>
       </section>
     </main>
+    </>
   )
 }
 
