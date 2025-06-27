@@ -9,14 +9,16 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { ArrowLeft, Calendar, ExternalLink, Github, Tag } from "lucide-react"
 import type { Metadata } from "next"
+import { GalleryWithModal } from "@/components/gallery-with-modal"
 
 interface ProjectPageProps {
-  params: {
+  params: Promise<{
     slug: string
-  }
+  }>
 }
 
-export async function generateMetadata({ params }: ProjectPageProps): Promise<Metadata> {
+export async function generateMetadata(props: ProjectPageProps): Promise<Metadata> {
+  const params = await props.params;
   const project = await getProjectBySlug(params.slug)
 
   if (!project) {
@@ -44,7 +46,8 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<Me
   }
 }
 
-export default async function ProjectPage({ params }: ProjectPageProps) {
+export default async function ProjectPage(props: ProjectPageProps) {
+  const params = await props.params;
   const project = await getProjectBySlug(params.slug)
 
   if (!project) {
@@ -174,24 +177,8 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                   </div>
                 )}
 
-                {/* Gallery */}
-                {project.gallery && project.gallery.length > 0 && (
-                  <div className="space-y-4">
-                    <h2 className="text-2xl font-bold">Galería</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {project.gallery.map((image, index) => (
-                        <div key={index} className="relative aspect-video overflow-hidden rounded-lg border">
-                          <Image
-                            src={image || "/placeholder.svg?height=720&width=1280"}
-                            alt={`${project.name} - Imagen ${index + 1}`}
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                {/* Gallery - Ahora usando el componente cliente */}
+                <GalleryWithModal project={project} />
 
                 {/* Project Links */}
                 <div className="flex flex-wrap gap-4 pt-4">

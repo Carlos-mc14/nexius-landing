@@ -3,7 +3,8 @@ import { getSession } from "@/lib/auth"
 import { checkPermission } from "@/lib/permissions"
 import { updateHomepageSection } from "@/lib/homepage"
 
-export async function PUT(request: Request, { params }: { params: { section: string } }) {
+export async function PUT(request: Request, props: { params: Promise<{ section: string }> }) {
+  const params = await props.params;
   try {
     const session = await getSession()
 
@@ -43,7 +44,8 @@ export async function PUT(request: Request, { params }: { params: { section: str
   }
 }
 
-export async function GET(request: Request, { params }: { params: { section: string } }) {
+export async function GET(request: Request, props: { params: Promise<{ section: string }> }) {
+  const params = await props.params;
   try {
     const { section } = await params
 

@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server"
 import { getProjectBySlug } from "@/lib/projects"
 
-export async function GET(request: Request, { params }: { params: { slug: string } }) {
+export async function GET(request: Request, props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   try {
     const { slug } = params
     const project = await getProjectBySlug(slug)

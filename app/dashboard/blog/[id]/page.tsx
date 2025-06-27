@@ -5,12 +5,13 @@ import { notFound } from "next/navigation"
 import { BlogPostForm } from "@/components/dashboard/blog/blog-post-form"
 
 interface BlogPostPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
-export default async function BlogPostPage({ params }: BlogPostPageProps) {
+export default async function BlogPostPage(props: BlogPostPageProps) {
+  const params = await props.params;
   const session = await getSession()
   const { id } = params
 

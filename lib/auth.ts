@@ -107,7 +107,7 @@ export async function createSession(userId: string) {
 // Function to get the current session
 export async function getSession(): Promise<Session | null> {
   try {
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     const token = (await cookieStore).get("auth-token")?.value
 
     if (!token) {
