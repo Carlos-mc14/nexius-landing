@@ -69,7 +69,7 @@ export async function createSession(userId: string) {
     }
 
     // Create JWT token
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET || "nexius-secret-key")
+    const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET || "nexius-secret-key")
     const expiresIn = 60 * 60 * 24 * 7 // 7 days in seconds
 
     const token = await new SignJWT({
@@ -107,14 +107,14 @@ export async function createSession(userId: string) {
 // Function to get the current session
 export async function getSession(): Promise<Session | null> {
   try {
-    const cookieStore = await cookies()
+    const cookieStore = cookies()
     const token = (await cookieStore).get("auth-token")?.value
 
     if (!token) {
       return null
     }
 
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET || "nexius-secret-key")
+    const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET || "nexius-secret-key")
 
     try {
       const { payload } = await jwtVerify(token, secret)

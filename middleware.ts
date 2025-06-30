@@ -1,7 +1,19 @@
-// middleware.ts
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { jwtVerify } from "jose";
+
+const AUTH_COOKIE = "auth-token";
+
+async function verifyJWT(token: string | undefined) {
+  if (!token) return null;
+  try {
+    const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET || "nexius-secret-key");
+    const { payload } = await jwtVerify(token, secret);
+    return payload;
+  } catch {
+    return null;
+  }
+}
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -12,33 +24,20 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/portafolio/") ||
     pathname === "/sitemap.xml" ||
     pathname === "/robots.txt" ||
-    !pathname.startsWith("/dashboard/") // Excluye /admin de esta regla
+    !pathname.startsWith("/dashboard/")
   ) {
     const response = NextResponse.next();
-    response.headers.set(
-      "Cache-Control",
-      "stale-while-revalidate=600"
-    );
+    response.headers.set("Cache-Control", "stale-while-revalidate=600");
     return response;
   }
 
-  // 2) Protección de rutas /admin
+  // 2) Protección de rutas /dashboard
   if (pathname.startsWith("/dashboard")) {
-    // Obtiene el JWT desde las cookies
-    const token = await getToken({
-      req: request,
-      secret: process.env.NEXTAUTH_SECRET,
-    });
+    const token = request.cookies.get(AUTH_COOKIE)?.value;
+    const payload = await verifyJWT(token);
 
-    // Si no hay token, redirige al signin con callbackUrl
-    if (!token || !token.role) {
-      const signInUrl = new URL("/auth/signin", request.url);
-      signInUrl.searchParams.set("callbackUrl", encodeURIComponent(request.url));
-      return NextResponse.redirect(signInUrl);
-    }
-
-    // Verifica rol de administrador
-    if (token.role !== "admin" || !token.role) {
+    // Verifica rol de administrador (ajusta según tu lógica de roles)
+    if (!payload?.role || payload.role !== "admin") {
       return NextResponse.redirect(new URL("/", request.url));
     }
   }
@@ -47,7 +46,6 @@ export async function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
-// Aplica el middleware solo a estas rutas
 export const config = {
   matcher: [
     "/",
