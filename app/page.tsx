@@ -131,7 +131,7 @@ export default async function Home() {
             "@type": "Organization",
             name: "Nexius",
             url: seoConfig.siteUrl,
-            logo: `${seoConfig.siteUrl}/logo.png`,
+            logo: `${seoConfig.siteUrl}/upload/f3eb8b67-ed9f-43c7-a9a1-ebf6db369bdd.svg`,
             description: seoConfig.description,
             address: {
               "@type": "PostalAddress",
@@ -153,12 +153,12 @@ export default async function Home() {
             "@graph": [
               {
                 "@type": "WebSite",
-                "@id": `${seoConfig.siteUrl}/#website`,
+                "@id": `${seoConfig.siteUrl}/`,
                 url: seoConfig.siteUrl,
                 name: seoConfig.title,
                 description: seoConfig.description,
                 publisher: {
-                  "@id": `${seoConfig.siteUrl}/#organization`,
+                  "@id": `${seoConfig.siteUrl}/`,
                 },
                 potentialAction: [
                   {
@@ -174,18 +174,18 @@ export default async function Home() {
               },
               {
                 "@type": "WebPage",
-                "@id": `${seoConfig.siteUrl}/#webpage`,
+                "@id": `${seoConfig.siteUrl}/`,
                 url: seoConfig.siteUrl,
                 name: seoConfig.title,
                 isPartOf: {
-                  "@id": `${seoConfig.siteUrl}/#website`,
+                  "@id": `${seoConfig.siteUrl}/`,
                 },
                 about: {
-                  "@id": `${seoConfig.siteUrl}/#organization`,
+                  "@id": `${seoConfig.siteUrl}/`,
                 },
                 description: seoConfig.description,
                 breadcrumb: {
-                  "@id": `${seoConfig.siteUrl}/#breadcrumb`,
+                  "@id": `${seoConfig.siteUrl}/`,
                 },
                 inLanguage: "es-ES",
                 potentialAction: [
