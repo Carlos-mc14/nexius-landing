@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "@/hooks/use-toast"
-import { Loader2, Send, CheckCircle, Wand2 } from "lucide-react"
+import { Loader2, Send, CheckCircle, Wand2, MessageCircle } from "lucide-react"
 import { useRecaptcha } from "@/components/recaptcha-provider"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { motion, AnimatePresence } from "framer-motion"
@@ -77,7 +77,8 @@ export default function ContactForm() {
   const [showSuccess, setShowSuccess] = useState(false)
   const { executeRecaptcha, isLoaded } = useRecaptcha()
 
-  // Inicializar el formulario
+  const whatsappNumber = "+51973648613" 
+  
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -89,6 +90,65 @@ export default function ContactForm() {
       mensaje: "",
     },
   })
+
+  // Función para formatear el mensaje de WhatsApp
+  const formatWhatsAppMessage = (data: FormValues) => {
+    const servicios = {
+      "diseno-web": "Diseño Web",
+      "desarrollo-medida": "Desarrollo a Medida",
+      "sistema-restaurante": "Sistema para Restaurantes",
+      "sistema-hotel": "Sistema para Hoteles",
+      "e-commerce": "Sistema E-Commerce",
+      "soporte": "Soporte Técnico",
+      "otro": "Otro"
+    }
+
+    const servicioTexto = servicios[data.servicio as keyof typeof servicios] || data.servicio
+
+    return `¡Hola! Me gustaría contactar con ustedes.
+
+  *Mis datos:*
+  • Nombre: ${data.nombre}
+  • Email: ${data.email}
+  • Teléfono: ${data.telefono}
+  ${data.empresa ? `• Empresa: ${data.empresa}` : ""}
+
+  *Servicio de interés:* ${servicioTexto}
+
+  *Mensaje:*
+  ${data.mensaje}
+
+  Quedo atento a su respuesta. ¡Gracias!`
+  }
+
+  // Función para enviar por WhatsApp
+  const handleWhatsAppSubmit = () => {
+    const formData = form.getValues()
+    
+    // Validar el formulario antes de enviar
+    form.trigger().then((isValid) => {
+      if (isValid) {
+        const message = formatWhatsAppMessage(formData)
+        const encodedMessage = encodeURIComponent(message)
+        const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`
+        
+        // Abrir WhatsApp en una nueva ventana
+        window.open(whatsappUrl, '_blank')
+        
+        // Mostrar toast de confirmación
+        toast({
+          title: "Redirigiendo a WhatsApp",
+          description: "Se abrirá WhatsApp con tu mensaje preparado.",
+        })
+      } else {
+        toast({
+          title: "Formulario incompleto",
+          description: "Por favor, completa todos los campos obligatorios antes de enviar por WhatsApp.",
+          variant: "destructive",
+        })
+      }
+    })
+  }
 
   // Función para enviar el formulario
   async function onSubmit(data: FormValues) {
@@ -251,11 +311,12 @@ export default function ContactForm() {
                       </SelectTrigger>
                       <SelectContent className="bg-popover border-border">
                         <SelectItem value="diseno-web">Diseño Web</SelectItem>
+                        <SelectItem value="desarrollo-medida">Desarrollo a Medida</SelectItem>
                         <SelectItem value="sistema-restaurante">Sistema para Restaurantes</SelectItem>
                         <SelectItem value="sistema-hotel">Sistema para Hoteles</SelectItem>
-                        <SelectItem value="desarrollo-medida">Desarrollo a Medida</SelectItem>
-                        <SelectItem value="app-movil">App Móvil</SelectItem>
+                        <SelectItem value="e-commerce">Sistema E-Commerce</SelectItem>
                         <SelectItem value="soporte">Soporte Técnico</SelectItem>
+                        <SelectItem value="otro">Otro</SelectItem>
                       </SelectContent>
                     </Select>
                   </FormControl>
@@ -293,7 +354,7 @@ export default function ContactForm() {
               >
                 Términos y Condiciones
               </Link>
-              {" "} y {" "}
+              {", "}
               <Link 
                 href="/privacy-policy" 
                 target="_blank" 
@@ -301,7 +362,7 @@ export default function ContactForm() {
               >
                 Política de Privacidad
               </Link>
-              {" & "}
+              {" y "}
               <Link
                 href="https://policies.google.com/privacy"
                 target="_blank"
@@ -311,23 +372,36 @@ export default function ContactForm() {
               </Link>
             </div>
 
-            <Button
-              type="submit"
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Enviando...
-                </>
-              ) : (
-                <>
-                  <Send className="mr-2 h-4 w-4" />
-                  Enviar mensaje
-                </>
-              )}
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button
+                type="submit"
+                className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Enviando...
+                  </>
+                ) : (
+                  <>
+                    <Send className="mr-2 h-4 w-4" />
+                    Enviar mensaje
+                  </>
+                )}
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleWhatsAppSubmit}
+                className="flex-1 bg-green-700 hover:bg-green-700/90 hover:text-primary-foreground text-primary-foreground"
+                disabled={isSubmitting}
+              >
+                <MessageCircle className="mr-2 h-4 w-4" />
+                Enviar por WhatsApp
+              </Button>
+            </div>
           </form>
         </Form>
         

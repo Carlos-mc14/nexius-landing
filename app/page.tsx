@@ -546,7 +546,7 @@ export default async function Home() {
                       <Phone className="h-5 w-5" />
                     </div>
                     <div>
-                      <p className="font-medium">Teléfono</p>
+                      <p className="font-medium">Teléfono/Whatsapp</p>
                       <p className="text-muted-foreground">{homepageContent.contactInfo?.phone || "+123 456 7890"}</p>
                     </div>
                   </div>
