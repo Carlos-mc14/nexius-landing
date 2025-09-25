@@ -13,6 +13,8 @@ export type Permission =
   | "users:edit"
   | "users:delete"
   | "profile:edit"
+  | "blog:edit" // Added blog permission
+  | "promotions:edit" // Added promotions permission
 
 // Role-based permissions
 const rolePermissions: Record<string, Permission[]> = {
@@ -27,8 +29,18 @@ const rolePermissions: Record<string, Permission[]> = {
     "users:edit",
     "users:delete",
     "profile:edit",
+    "blog:edit", // Added blog permission for admin
+    "promotions:edit", // Added promotions permission for admin
   ],
-  editor: ["homepage:edit", "team:manage", "team:add", "team:edit", "profile:edit"],
+  editor: [
+    "homepage:edit",
+    "team:manage",
+    "team:add",
+    "team:edit",
+    "profile:edit",
+    "blog:edit", // Added blog permission for editor
+    "promotions:edit", // Added promotions permission for editor
+  ],
   member: ["profile:edit"],
 }
 
