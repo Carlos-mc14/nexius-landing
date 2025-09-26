@@ -127,7 +127,7 @@ export default function SpotifyTrackPlayer({ track: initialTrack, userId }: Spot
 
           <div className="min-w-0 flex-1">
             <p className="text-xs text-green-600 font-medium mb-1">{statusText}</p>
-            <h4 className="text-sm font-semibold text-gray-900 truncate">{track.name}</h4>
+            <h4 className="text-sm font-semibold text-gray-900 dark:text-white truncate">{track.name}</h4>
             <p className="text-xs text-gray-500 truncate">{artistNames}</p>
             <p className="text-xs text-gray-400 truncate">{track.album.name}</p>
           </div>
@@ -140,16 +140,6 @@ export default function SpotifyTrackPlayer({ track: initialTrack, userId }: Spot
               </Button>
             )}
 
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 rounded-full"
-              onClick={fetchLatestTrack}
-              disabled={isLoading}
-            >
-              <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
-              <span className="sr-only">Actualizar</span>
-            </Button>
 
             <Link href={track.external_urls.spotify} target="_blank" rel="noopener noreferrer">
               <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
