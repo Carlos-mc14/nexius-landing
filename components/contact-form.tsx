@@ -20,7 +20,9 @@ import Link from "next/link"
 const formSchema = z.object({
   nombre: z.string().min(2, { message: "El nombre debe tener al menos 2 caracteres" }),
   email: z.string().email({ message: "Ingrese un email válido" }),
-  telefono: z.string().min(6, { message: "Ingrese un número de teléfono válido" }),
+  telefono: z.string()
+  .min(6, "El teléfono debe tener al menos 6 dígitos")
+  .regex(/^\+?[0-9\s\-\(\)]+$/, "Ingrese un número de teléfono válido"),
   empresa: z.string().min(0, { message: "Ingrese el nombre de su empresa" }),
   servicio: z.string().min(1, { message: "Seleccione un servicio" }),
   mensaje: z.string().min(10, { message: "El mensaje debe tener al menos 10 caracteres" }),

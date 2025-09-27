@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { useState, useEffect, useRef } from "react"
+import { ThemeToggle } from "@/components/theme-toggle" // Asegúrate de importarlo
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -11,7 +12,6 @@ export default function Navbar() {
     setIsMobileMenuOpen(!isMobileMenuOpen)
   }
 
-  // Cerrar el menú si se hace clic fuera
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -28,7 +28,6 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [isMobileMenuOpen])
 
-  // Bloquear el scroll cuando el menú está abierto
   useEffect(() => {
     if (isMobileMenuOpen) {
       document.body.style.overflow = "hidden"
@@ -37,7 +36,6 @@ export default function Navbar() {
     }
   }, [isMobileMenuOpen])
 
-  // Navigation items array
   const navItems = [
     { name: "Inicio", href: "/" },
     { name: "Servicios", href: "/#servicios" },
@@ -48,38 +46,48 @@ export default function Navbar() {
   ]
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 w-full">
-      <div className="max-w-[1280px] mx-auto px-4 py-3">
+    <nav className="fixed top-0 left-0 right-0 z-50 w-full">
+      <div className="absolute inset-0 backdrop-blur-md bg-white/80 dark:bg-gray-900/80 border-b border-gray-200/50 dark:border-gray-700/50"></div>
+      
+      <div className="relative max-w-[1280px] mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="font-bold text-2xl text-slate-800 dark:text-white">
+          <Link href="/" className="font-bold text-xl md:text-2xl text-slate-800 dark:text-white tracking-tight">
             NEXIUS
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center space-x-8">
-            {navItems.map((item, index) => (
-              <Link
-                key={index}
-                href={item.href}
-                className="text-slate-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
-              >
-                {item.name}
-              </Link>
-            ))}
+          {/* Desktop Navigation - Centrado */}
+          <div className="hidden lg:flex items-center justify-center flex-1">
+            <div className="flex items-center space-x-6">
+              {navItems.map((item, index) => (
+                <Link
+                  key={index}
+                  href={item.href}
+                  className="text-sm md:text-base font-medium text-slate-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200"
+                >
+                  {item.name}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Desktop: Theme Toggle + CTA */}
+          <div className="hidden lg:flex items-center gap-3">
+            <ThemeToggle />
             <Link
               href="/#contacto"
-              className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 shadow-sm hover:shadow-md"
             >
               Solicitar cotización
             </Link>
           </div>
 
-          {/* Mobile Menu Button */}
-          <div className="flex items-center lg:hidden">
+          {/* Mobile: Theme Toggle + Menu Button */}
+          <div className="flex items-center lg:hidden gap-2">
+            <ThemeToggle />
             <button
               onClick={toggleMobileMenu}
-              className="ml-2 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+              className="p-2 rounded-md hover:bg-gray-100/80 dark:hover:bg-gray-800/80"
               aria-label="Toggle menu"
             >
               <svg
@@ -99,7 +107,7 @@ export default function Navbar() {
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black bg-opacity-40 z-40 lg:hidden"
           onClick={() => setIsMobileMenuOpen(false)}
           aria-hidden="true"
         />
@@ -108,11 +116,11 @@ export default function Navbar() {
       {/* Mobile Menu */}
       <div
         ref={menuRef}
-        className={`fixed top-0 right-0 h-full w-[280px] max-w-[80%] bg-white dark:bg-gray-900 shadow-xl z-50 transform transition-transform duration-300 ease-in-out lg:hidden ${
+        className={`fixed top-0 right-0 h-full w-[280px] max-w-[80%] bg-white dark:bg-gray-900 shadow-2xl z-50 transform transition-transform duration-300 ease-in-out lg:hidden ${
           isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex justify-between items-center p-5 border-b border-gray-200 dark:border-gray-700">
           <Link
             href="/"
             className="font-bold text-xl text-slate-800 dark:text-white"
@@ -136,12 +144,12 @@ export default function Navbar() {
             </svg>
           </button>
         </div>
-        <div className="p-4 flex flex-col gap-4">
+        <div className="p-5 flex flex-col gap-4">
           {navItems.map((item, index) => (
             <Link
               key={index}
               href={item.href}
-              className="py-2 text-slate-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
+              className="py-2.5 text-base font-medium text-slate-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               {item.name}
@@ -149,11 +157,15 @@ export default function Navbar() {
           ))}
           <Link
             href="/#contacto"
-            className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors text-center mt-2"
+            className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg font-medium text-center transition-colors"
             onClick={() => setIsMobileMenuOpen(false)}
           >
             Solicitar cotización
           </Link>
+          {/* Opcional: ThemeToggle en móvil */}
+          {/* <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <ThemeToggle />
+          </div> */}
         </div>
       </div>
     </nav>

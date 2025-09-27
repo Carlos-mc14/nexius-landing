@@ -155,8 +155,6 @@ export default async function RootLayout({
                             </Link>
                           </div>
                         </div>
-
-                        <ThemeToggle />
                       </div>
 
                       <div className="space-y-4">
