@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
@@ -112,6 +112,47 @@ export function PromotionForm({ initialData }: PromotionFormProps) {
       seoDescription: initialData?.seoDescription || "",
     },
   })
+  
+  // Observar los campos relacionados con precios
+  const discountPercentage = form.watch("discountPercentage");
+  const originalPrice = form.watch("originalPrice");
+  const discountedPrice = form.watch("discountedPrice");
+
+  useEffect(() => {
+    // Solo calcular si al menos dos campos están definidos
+    const hasDiscount = discountPercentage !== undefined && discountPercentage !== null;
+    const hasOriginal = originalPrice !== undefined && originalPrice !== null;
+    const hasDiscounted = discountedPrice !== undefined && discountedPrice !== null;
+
+    // Caso 1: Tenemos Precio Original y Descuento → calcular Precio con Descuento
+    if (hasOriginal && hasDiscount && !hasDiscounted) {
+      const calculated = originalPrice * (1 - discountPercentage / 100);
+      form.setValue("discountedPrice", parseFloat(calculated.toFixed(2)), {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+    }
+    // Caso 2: Tenemos Precio Original y Precio con Descuento → calcular Descuento (%)
+    else if (hasOriginal && hasDiscounted && !hasDiscount) {
+      if (originalPrice > 0) {
+        const calculated = ((originalPrice - discountedPrice) / originalPrice) * 100;
+        form.setValue("discountPercentage", parseFloat(calculated.toFixed(2)), {
+          shouldValidate: true,
+          shouldDirty: true,
+        });
+      }
+    }
+    // Caso 3: Tenemos Descuento y Precio con Descuento → calcular Precio Original
+    else if (hasDiscount && hasDiscounted && !hasOriginal) {
+      if (discountPercentage < 100) {
+        const calculated = discountedPrice / (1 - discountPercentage / 100);
+        form.setValue("originalPrice", parseFloat(calculated.toFixed(2)), {
+          shouldValidate: true,
+          shouldDirty: true,
+        });
+      }
+    }
+  }, [discountPercentage, originalPrice, discountedPrice, form]);
 
   async function onSubmit(data: PromotionFormValues) {
     setIsLoading(true)

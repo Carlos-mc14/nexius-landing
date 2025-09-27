@@ -8,12 +8,9 @@ import {
   FileText,
   Users,
   FolderOpen,
-  Settings,
   Search,
-  MessageSquare,
-  Phone,
-  BarChart3,
   UserCheck,
+  Percent,
 } from "lucide-react"
 
 const navigation = [
@@ -26,6 +23,11 @@ const navigation = [
     name: "Blog",
     href: "/dashboard/blog",
     icon: FileText,
+  },
+  {
+    name: "Promociones",
+    href: "/dashboard/promotions",
+    icon: Percent,
   },
   {
     name: "Proyectos",
@@ -51,11 +53,6 @@ const navigation = [
     name: "SEO",
     href: "/dashboard/seo",
     icon: Search,
-  },
-  {
-    name: "WhatsApp",
-    href: "/dashboard/whatsapp",
-    icon: MessageSquare,
   },
 ]
 
