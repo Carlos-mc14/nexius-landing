@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form"
 import * as z from "zod"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
-import { CalendarIcon, Loader2 } from "lucide-react"
+import { CalendarIcon, Loader2, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
@@ -118,38 +118,56 @@ export function PromotionForm({ initialData }: PromotionFormProps) {
   const originalPrice = form.watch("originalPrice");
   const discountedPrice = form.watch("discountedPrice");
 
-  useEffect(() => {
-    // Solo calcular si al menos dos campos están definidos
-    const hasDiscount = discountPercentage !== undefined && discountPercentage !== null;
-    const hasOriginal = originalPrice !== undefined && originalPrice !== null;
-    const hasDiscounted = discountedPrice !== undefined && discountedPrice !== null;
+  // Función para limpiar los campos de precios
+  const clearPriceFields = () => {
+    form.setValue("discountPercentage", undefined, { shouldValidate: true, shouldDirty: true });
+    form.setValue("originalPrice", undefined, { shouldValidate: true, shouldDirty: true });
+    form.setValue("discountedPrice", undefined, { shouldValidate: true, shouldDirty: true });
+  };
 
-    // Caso 1: Tenemos Precio Original y Descuento → calcular Precio con Descuento
-    if (hasOriginal && hasDiscount && !hasDiscounted) {
-      const calculated = originalPrice * (1 - discountPercentage / 100);
-      form.setValue("discountedPrice", parseFloat(calculated.toFixed(2)), {
-        shouldValidate: true,
-        shouldDirty: true,
-      });
-    }
-    // Caso 2: Tenemos Precio Original y Precio con Descuento → calcular Descuento (%)
-    else if (hasOriginal && hasDiscounted && !hasDiscount) {
-      if (originalPrice > 0) {
-        const calculated = ((originalPrice - discountedPrice) / originalPrice) * 100;
-        form.setValue("discountPercentage", parseFloat(calculated.toFixed(2)), {
-          shouldValidate: true,
-          shouldDirty: true,
-        });
+  useEffect(() => {
+    const disc = discountPercentage;
+    const orig = originalPrice;
+    const discPrice = discountedPrice;
+
+    const isValidNumber = (val: number | undefined | null): val is number => {
+      return val != null && !isNaN(val) && isFinite(val);
+    };
+
+    // Caso 1: Original + Descuento → calcular Precio con Descuento
+    if (isValidNumber(orig) && isValidNumber(disc) && disc >= 0 && disc <= 100) {
+      if (!isValidNumber(discPrice)) {
+        const calculated = orig * (1 - disc / 100);
+        if (isFinite(calculated) && calculated >= 0) {
+          form.setValue("discountedPrice", parseFloat(calculated.toFixed(2)), {
+            shouldValidate: true,
+            shouldDirty: true,
+          });
+        }
       }
     }
-    // Caso 3: Tenemos Descuento y Precio con Descuento → calcular Precio Original
-    else if (hasDiscount && hasDiscounted && !hasOriginal) {
-      if (discountPercentage < 100) {
-        const calculated = discountedPrice / (1 - discountPercentage / 100);
-        form.setValue("originalPrice", parseFloat(calculated.toFixed(2)), {
-          shouldValidate: true,
-          shouldDirty: true,
-        });
+    // Caso 2: Original + Precio con Descuento → calcular Descuento (%)
+    else if (isValidNumber(orig) && isValidNumber(discPrice) && orig > 0) {
+      if (!isValidNumber(disc)) {
+        const calculated = ((orig - discPrice) / orig) * 100;
+        if (isFinite(calculated) && calculated >= 0 && calculated <= 100) {
+          form.setValue("discountPercentage", parseFloat(calculated.toFixed(2)), {
+            shouldValidate: true,
+            shouldDirty: true,
+          });
+        }
+      }
+    }
+    // Caso 3: Descuento + Precio con Descuento → calcular Precio Original
+    else if (isValidNumber(disc) && isValidNumber(discPrice) && disc >= 0 && disc < 100) {
+      if (!isValidNumber(orig)) {
+        const calculated = discPrice / (1 - disc / 100);
+        if (isFinite(calculated) && calculated >= 0) {
+          form.setValue("originalPrice", parseFloat(calculated.toFixed(2)), {
+            shouldValidate: true,
+            shouldDirty: true,
+          });
+        }
       }
     }
   }, [discountPercentage, originalPrice, discountedPrice, form]);
@@ -344,6 +362,21 @@ export function PromotionForm({ initialData }: PromotionFormProps) {
             </FormItem>
           )}
         />
+
+        {/* Botón para limpiar los campos de precios */}
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={clearPriceFields}
+            disabled={isLoading}
+            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Limpiar precios
+          </Button>
+        </div>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <FormField
