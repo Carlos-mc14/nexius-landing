@@ -4,6 +4,25 @@ export type PaymentStatus = "paid" | "pending" | "overdue" | "cancelled"
 
 export type PaymentMethod = "transfer" | "yape" | "plin" | "card" | "cash" | "other"
 
+// Scheduling modes for automatic next payment calculations
+// manual: uses startDate/endDate logic + frequency as before
+// monthly_first: always due the 1st day of each month
+// annual_jan5: always due every January 5th
+export type ScheduleMode = "manual" | "monthly_first" | "annual_jan5"
+
+export interface LicensePaymentRecord {
+  _id?: string
+  amount: number
+  currency?: string
+  paidAt: string // ISO date when the payment was confirmed
+  method?: PaymentMethod | string
+  // Optional coverage window this payment corresponds to
+  periodStart?: string
+  periodEnd?: string
+  notes?: string
+  createdAt?: string
+}
+
 export interface LicenseRecord {
   _id?: string
   licenseKey: string
@@ -11,6 +30,9 @@ export interface LicenseRecord {
   // RUC or DNI
   rucOrDni?: string
   companyName: string
+  // Contact information
+  phoneNumber?: string
+  email?: string
   amount: number
   currency?: string
   frequency: BillingFrequency
@@ -19,6 +41,8 @@ export interface LicenseRecord {
   // payment status and method
   status?: PaymentStatus
   paymentMethod?: PaymentMethod | string
+  // Scheduling mode (optional, defaults to manual)
+  scheduleMode?: ScheduleMode
   // dates
   startDate?: string // ISO
   endDate?: string // ISO
@@ -28,6 +52,8 @@ export interface LicenseRecord {
   paidAt?: string
   gracePeriodDays?: number
   notes?: string
+  // Payment history (embedded for now)
+  paymentHistory?: LicensePaymentRecord[]
   createdAt?: string
   updatedAt?: string
 }

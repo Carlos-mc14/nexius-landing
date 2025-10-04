@@ -51,9 +51,9 @@ export default function LicensesPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [form, setForm] = useState<any>({ 
-    companyName: "", rucOrDni: "", amount: 0, currency: "PEN", 
-    frequency: "monthly", domain: "", serviceType: "", status: "pending", 
-    paymentMethod: "transfer", startDate: "", endDate: "", 
+    companyName: "", rucOrDni: "", phoneNumber: "", email: "", amount: 0, currency: "PEN", 
+    frequency: "monthly", scheduleMode: "manual", domain: "", serviceType: "", status: "pending", 
+    paymentMethod: "transfer", startDate: "", endDate: "", nextPaymentDue: "", 
     gracePeriodDays: 7, notes: "" 
   })
 
@@ -94,9 +94,9 @@ export default function LicensesPage() {
   function openCreate() {
     setEditing(null)
     setForm({ 
-      companyName: "", rucOrDni: "", amount: 0, currency: "PEN", 
-      frequency: "monthly", domain: "", serviceType: "", status: "pending", 
-      paymentMethod: "transfer", startDate: "", endDate: "", 
+      companyName: "", rucOrDni: "", phoneNumber: "", email: "", amount: 0, currency: "PEN", 
+      frequency: "monthly", scheduleMode: "manual", domain: "", serviceType: "", status: "pending", 
+      paymentMethod: "transfer", startDate: "", endDate: "", nextPaymentDue: "", 
       gracePeriodDays: 7, notes: "" 
     })
     setOpen(true)
@@ -104,7 +104,7 @@ export default function LicensesPage() {
 
   function openEdit(item: License) {
     setEditing(item)
-    setForm({ ...item })
+  setForm({ ...item })
     setOpen(true)
   }
 
@@ -407,6 +407,22 @@ export default function LicensesPage() {
                   />
                 </div>
                 <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Teléfono</label>
+                  <Input 
+                    placeholder="+51 999 999 999" 
+                    value={form.phoneNumber} 
+                    onChange={(e) => setForm({ ...form, phoneNumber: e.target.value })} 
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Correo</label>
+                  <Input 
+                    placeholder="contacto@empresa.com" 
+                    value={form.email} 
+                    onChange={(e) => setForm({ ...form, email: e.target.value })} 
+                  />
+                </div>
+                <div>
                   <label className="text-xs font-medium text-muted-foreground mb-1 block">Dominio</label>
                   <Input 
                     placeholder="example.com" 
@@ -431,7 +447,7 @@ export default function LicensesPage() {
                 <DollarSign className="h-4 w-4" />
                 Información de Pago
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                   <label className="text-xs font-medium text-muted-foreground mb-1 block">Monto *</label>
                   <Input 
@@ -463,6 +479,19 @@ export default function LicensesPage() {
                     <SelectContent>
                       <SelectItem value="monthly">Mensual</SelectItem>
                       <SelectItem value="annual">Anual</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Modo de Programación</label>
+                  <Select value={form.scheduleMode} onValueChange={(v) => setForm({ ...form, scheduleMode: v })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="manual">Manual</SelectItem>
+                      <SelectItem value="monthly_first">Cada 1 de cada mes</SelectItem>
+                      <SelectItem value="annual_jan5">Cada 5 de Enero</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -505,7 +534,7 @@ export default function LicensesPage() {
                 <Calendar className="h-4 w-4" />
                 Período de Vigencia
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                   <label className="text-xs font-medium text-muted-foreground mb-1 block">Fecha de Inicio</label>
                   <Input 
@@ -530,6 +559,13 @@ export default function LicensesPage() {
                     onChange={(e) => setForm({ ...form, gracePeriodDays: Number(e.target.value) })} 
                   />
                 </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Próximo Pago (solo lectura)</label>
+                  <Input 
+                    disabled 
+                    value={form.nextPaymentDue ? new Date(form.nextPaymentDue).toLocaleDateString('es-PE') : ''} 
+                  />
+                </div>
               </div>
             </div>
 
@@ -543,6 +579,26 @@ export default function LicensesPage() {
               />
             </div>
           </div>
+
+          {editing && form.paymentHistory?.length > 0 && (
+            <div className="mt-6">
+              <h3 className="text-sm font-semibold mb-2">Historial de Pagos</h3>
+              <div className="border rounded-md divide-y">
+                {form.paymentHistory.map((p: any, idx: number) => (
+                  <div key={idx} className="p-3 text-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <div className="flex flex-col">
+                      <span className="font-medium">{p.amount} {p.currency || form.currency}</span>
+                      <span className="text-muted-foreground text-xs">{p.paidAt ? new Date(p.paidAt).toLocaleDateString('es-PE') : ''}</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {p.method && <span>Método: {p.method}</span>}
+                      {p.periodEnd && <span className="ml-2">Cobertura hasta: {new Date(p.periodEnd).toLocaleDateString('es-PE')}</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <DialogFooter className="mt-6 gap-2">
             <Button variant="outline" onClick={() => setOpen(false)}>

@@ -7,6 +7,7 @@ import { WhyChooseUsForm } from "@/components/dashboard/homepage/why-choose-us-f
 import { ContactInfoForm } from "@/components/dashboard/homepage/contact-info-form"
 import { FooterForm } from "@/components/dashboard/homepage/footer-form"
 import { getHomepageContent } from "@/lib/homepage"
+import { SectionsMetaForm } from "@/components/dashboard/homepage/sections-meta-form"
 import { checkPermission } from "@/lib/permissions"
 import { getSession } from "@/lib/auth"
 import { redirect } from "next/navigation"
@@ -37,13 +38,14 @@ export default async function HomepageEditorPage() {
       </div>
 
       <Tabs defaultValue="hero" className="space-y-4">
-        <TabsList className="grid grid-cols-3 md:grid-cols-6 w-full">
+        <TabsList className="grid grid-cols-3 md:grid-cols-7 w-full">
           <TabsTrigger value="hero">Hero</TabsTrigger>
           <TabsTrigger value="services">Servicios</TabsTrigger>
           <TabsTrigger value="testimonials">Testimonios</TabsTrigger>
           <TabsTrigger value="why-choose-us">Por qué elegirnos</TabsTrigger>
           <TabsTrigger value="contact">Contacto</TabsTrigger>
           <TabsTrigger value="footer">Footer</TabsTrigger>
+          <TabsTrigger value="sections-meta">Encabezados</TabsTrigger>
         </TabsList>
 
         <TabsContent value="hero" className="space-y-4">
@@ -118,6 +120,20 @@ export default async function HomepageEditorPage() {
             </CardHeader>
             <CardContent className="space-y-2">
               <FooterForm initialData={homepageContent.footer} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="sections-meta" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Encabezados de Secciones</CardTitle>
+              <CardDescription>
+                Administra badge, título y descripción visibles en cada sección pública.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <SectionsMetaForm initialData={homepageContent.sectionsMeta || {}} />
             </CardContent>
           </Card>
         </TabsContent>

@@ -74,7 +74,13 @@ const SuccessAnimation = () => {
   )
 }
 
-export default function ContactForm() {
+import type { ServiceItem } from "@/types/homepage"
+
+interface ContactFormProps {
+  servicesFromDashboard?: ServiceItem[]
+}
+
+export default function ContactForm({ servicesFromDashboard }: ContactFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
   const { executeRecaptcha, isLoaded } = useRecaptcha()
@@ -93,19 +99,35 @@ export default function ContactForm() {
     },
   })
 
+  // Generar opciones dinámicas desde servicios del dashboard (si existen)
+  const dynamicServiceOptions = (servicesFromDashboard || []).map((s) => {
+    const slug = s.title
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/\p{Diacritic}/gu, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "")
+    return { value: slug || s.id || s.title, label: s.title }
+  })
+
+  // Fallback legacy opciones (solo si no hay servicios en dashboard)
+  const legacyOptions = [
+    { value: "diseno-web", label: "Diseño Web" },
+    { value: "desarrollo-medida", label: "Desarrollo a Medida" },
+    { value: "sistema-restaurante", label: "Sistema para Restaurantes" },
+    { value: "sistema-hotel", label: "Sistema para Hoteles" },
+    { value: "e-commerce", label: "Sistema E-Commerce" },
+    { value: "soporte", label: "Soporte Técnico" },
+  ]
+
+  const serviceOptions = dynamicServiceOptions.length > 0 ? dynamicServiceOptions : legacyOptions
+
   // Función para formatear el mensaje de WhatsApp
   const formatWhatsAppMessage = (data: FormValues) => {
-    const servicios = {
-      "diseno-web": "Diseño Web",
-      "desarrollo-medida": "Desarrollo a Medida",
-      "sistema-restaurante": "Sistema para Restaurantes",
-      "sistema-hotel": "Sistema para Hoteles",
-      "e-commerce": "Sistema E-Commerce",
-      "soporte": "Soporte Técnico",
-      "otro": "Otro"
-    }
-
-    const servicioTexto = servicios[data.servicio as keyof typeof servicios] || data.servicio
+    const mapDynamic: Record<string, string> = {}
+    serviceOptions.forEach((o) => (mapDynamic[o.value] = o.label))
+    mapDynamic["otro"] = "Otro"
+    const servicioTexto = mapDynamic[data.servicio] || data.servicio
 
     return `¡Hola! Me gustaría contactar con ustedes.
 
@@ -311,13 +333,12 @@ export default function ContactForm() {
                       <SelectTrigger className="bg-background border-input focus-visible:ring-primary">
                         <SelectValue placeholder="Selecciona un servicio" />
                       </SelectTrigger>
-                      <SelectContent className="bg-popover border-border">
-                        <SelectItem value="diseno-web">Diseño Web</SelectItem>
-                        <SelectItem value="desarrollo-medida">Desarrollo a Medida</SelectItem>
-                        <SelectItem value="sistema-restaurante">Sistema para Restaurantes</SelectItem>
-                        <SelectItem value="sistema-hotel">Sistema para Hoteles</SelectItem>
-                        <SelectItem value="e-commerce">Sistema E-Commerce</SelectItem>
-                        <SelectItem value="soporte">Soporte Técnico</SelectItem>
+                      <SelectContent className="bg-popover border-border max-h-72">
+                        {serviceOptions.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
                         <SelectItem value="otro">Otro</SelectItem>
                       </SelectContent>
                     </Select>

@@ -46,6 +46,10 @@ export async function getHomepageContent() {
         content.footer = getDefaultFooterSection()
       }
 
+      if (!content.sectionsMeta) {
+        content.sectionsMeta = getDefaultSectionsMeta()
+      }
+
       return content
     },
     10, // Cache for 1 minute (reduced from 3600 to see changes faster)
@@ -224,5 +228,48 @@ function getDefaultFooterSection() {
       ],
     },
     copyright: `© ${new Date().getFullYear()} Nexius. Todos los derechos reservados.`,
+  }
+}
+
+function getDefaultSectionsMeta() {
+  return {
+    services: {
+      badge: "Nuestros Servicios",
+      title: "Soluciones digitales a medida",
+      description: "Ofrecemos servicios tecnológicos completos adaptados a las necesidades específicas de tu negocio.",
+    },
+    whyChooseUs: {
+      badge: "¿Por qué elegirnos?",
+      title: "Valor que impulsa resultados",
+      description:
+        "Las razones por las que nuestros clientes confían en nosotros para construir y escalar sus soluciones digitales.",
+    },
+    portfolio: {
+      badge: "Portafolio",
+      title: "Proyectos destacados",
+      description:
+        "Conoce algunos de nuestros proyectos más destacados y cómo hemos ayudado a nuestros clientes a crecer.",
+    },
+    promotions: {
+      badge: "Ofertas Especiales",
+      title: "Promociones Destacadas",
+      description: "Aprovecha nuestras ofertas exclusivas por tiempo limitado. Servicios de calidad con descuentos especiales.",
+    },
+    blog: {
+      badge: "Blog",
+      title: "Últimas publicaciones",
+      description: "Artículos técnicos, tutoriales y noticias sobre tecnología y desarrollo de software.",
+    },
+    testimonials: {
+      badge: "Testimonios",
+      title: "Lo que dicen nuestros clientes",
+      description:
+        "Empresas y personas que han confiado en nosotros y han transformado su negocio con nuestras soluciones.",
+    },
+    contact: {
+      badge: "Contáctanos",
+      title: "¿Listo para comenzar?",
+      description: "Estamos listos para ayudarte a transformar tu negocio con soluciones tecnológicas a medida.",
+    },
   }
 }

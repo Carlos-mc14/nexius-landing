@@ -24,7 +24,15 @@ export async function PUT(request: Request, props: { params: Promise<{ section: 
   const { section } = params
 
     // Validate section name to prevent injection
-    const validSections = ["hero", "services", "testimonials", "whyChooseUs", "contactInfo", "footer"]
+    const validSections = [
+      "hero",
+      "services",
+      "testimonials",
+      "whyChooseUs",
+      "contactInfo",
+      "footer",
+      "sectionsMeta",
+    ]
     if (!validSections.includes(section)) {
       return NextResponse.json({ error: `Sección inválida: ${section}` }, { status: 400 })
     }
@@ -53,7 +61,15 @@ export async function GET(request: Request, props: { params: Promise<{ section: 
     const { section } = await params
 
     // Validate section name to prevent injection
-    const validSections = ["hero", "services", "testimonials", "whyChooseUs", "contactInfo", "footer"]
+    const validSections = [
+      "hero",
+      "services",
+      "testimonials",
+      "whyChooseUs",
+      "contactInfo",
+      "footer",
+      "sectionsMeta",
+    ]
     if (!validSections.includes(section)) {
       return NextResponse.json({ error: `Sección inválida: ${section}` }, { status: 400 })
     }
