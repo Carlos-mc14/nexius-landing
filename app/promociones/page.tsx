@@ -89,7 +89,6 @@ async function PromotionsList() {
     return (
       <div className="text-center py-16">
         <div className="space-y-4">
-          <div className="text-6xl">🎯</div>
           <h2 className="text-2xl font-bold">No hay promociones activas</h2>
           <p className="text-muted-foreground max-w-md mx-auto">
             Por el momento no tenemos promociones disponibles. ¡Mantente atento a nuestras redes sociales para no

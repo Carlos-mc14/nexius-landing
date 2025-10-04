@@ -54,6 +54,10 @@ export interface LicenseRecord {
   notes?: string
   // Payment history (embedded for now)
   paymentHistory?: LicensePaymentRecord[]
+  // Payment intent (for external mobile payment confirmation flows)
+  currentPaymentCode?: string // short alphanumeric code user sends back or appears in Yape notification
+  currentPaymentCodeExpiresAt?: string
+  paymentVerificationState?: 'idle' | 'awaiting' | 'verifying' | 'verified'
   createdAt?: string
   updatedAt?: string
 }

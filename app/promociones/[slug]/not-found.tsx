@@ -7,7 +7,6 @@ export default function NotFound() {
     <main className="flex min-h-screen flex-col pt-16">
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center space-y-6 max-w-md mx-auto px-4">
-          <div className="text-8xl">🎯</div>
           <div className="space-y-2">
             <h1 className="text-3xl font-bold">Promoción no encontrada</h1>
             <p className="text-muted-foreground">

@@ -142,6 +142,10 @@ export async function updateLicense(id: string, update: Partial<LicenseRecord>) 
     const extended = extendPeriod(current)
     patch.endDate = extended.endDate
     patch.nextPaymentDue = extended.nextPaymentDue
+    // Clear any pending payment intent
+    patch.currentPaymentCode = null
+    patch.currentPaymentCodeExpiresAt = null
+    patch.paymentVerificationState = 'verified'
   }
 
   // Schedule mode handling
@@ -205,4 +209,15 @@ export async function findLicenseByDomain(domain: string) {
   const doc = await db.collection(COLLECTION).findOne({ domain })
   if (!doc) return null
   return { ...doc, _id: doc._id.toString() }
+}
+
+export async function createPaymentIntentForLicense(id: string, ttlMinutes = 60) {
+  const { db } = await connectToDatabase()
+  const _id = new ObjectId(id)
+  const code = Math.random().toString(36).substring(2, 8).toUpperCase()
+  const expires = new Date(Date.now() + ttlMinutes * 60 * 1000).toISOString()
+  await db.collection(COLLECTION).updateOne({ _id }, { $set: { currentPaymentCode: code, currentPaymentCodeExpiresAt: expires, paymentVerificationState: 'awaiting' } })
+  const doc = await db.collection(COLLECTION).findOne({ _id })
+  if (!doc) return null
+  return { ...doc, _id: doc._id.toString(), currentPaymentCode: code, currentPaymentCodeExpiresAt: expires }
 }

@@ -7,6 +7,11 @@ export type TransactionRecord = {
   currency?: string
   contactName?: string
   contactPhone?: string
+  // Yape / mobile payment specific enrichment
+  yapeCode?: string // confirmation code extracted from notification
+  payerNormalizedName?: string // normalized uppercase no-accents
+  licenseId?: string // direct link if inferred
+  licenseKey?: string
   message?: string
   notificationTitle?: string
   notificationText?: string
