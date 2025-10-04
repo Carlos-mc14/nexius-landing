@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation"
 import { getPromotionBySlug, getActivePromotions, isPromotionValid } from "@/lib/promotions"
 import { getSeoConfig } from "@/lib/seo"
+import { buildPageMetadataOverrides } from "@/lib/seo-utils"
 import type { Metadata } from "next"
 import PromotionPageClient from "./PromotionPageClient"
 
@@ -16,38 +17,24 @@ export async function generateMetadata({ params }: PromotionPageProps): Promise<
   const seoConfig = await getSeoConfig()
 
   if (!promotion) {
-    return {
+    // Return a small override when not found so layout still supplies defaults
+    return buildPageMetadataOverrides(seoConfig, {
       title: "Promoción no encontrada | Nexius",
       description: "La promoción que buscas no está disponible o ha expirado.",
-    }
+    }) as Metadata
   }
 
-  return {
-    title: promotion.seoTitle || `${promotion.title} | Promociones Nexius`,
-    description:
-      promotion.seoDescription ||
-      promotion.description ||
-      `Aprovecha esta oferta especial: ${promotion.title}. ¡Por tiempo limitado!`,
-    keywords: `promoción, oferta, descuento, ${promotion.title}, Nexius`,
-    openGraph: {
-      title: promotion.title,
-      description: promotion.description,
-      url: `${seoConfig.siteUrl}/promociones/${promotion.slug}`,
-      siteName: "Nexius",
-      images: [
-        {
-          url: promotion.coverImage || `${seoConfig.siteUrl}/placeholder.svg?height=630&width=1200`,
-          width: 1200,
-          height: 630,
-          alt: promotion.title,
-        },
-      ],
-      type: "website",
-    },
-    alternates: {
-      canonical: `/promociones/${promotion.slug}`,
-    },
-  }
+  const title = promotion.seoTitle || `${promotion.title} | Promociones Nexius`
+  const description = promotion.seoDescription || promotion.description || `Aprovecha esta oferta especial: ${promotion.title}. ¡Por tiempo limitado!`
+
+  const overrides = buildPageMetadataOverrides(seoConfig, {
+    title,
+    description,
+    image: promotion.coverImage || `${seoConfig.siteUrl}/placeholder.svg?height=630&width=1200`,
+    path: `/promociones/${promotion.slug}`,
+  })
+
+  return overrides as Metadata
 }
 
 // Disable caching for this page to always show the latest promotion data

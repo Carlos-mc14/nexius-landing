@@ -3,36 +3,21 @@ import { getActivePromotions } from "@/lib/promotions"
 import { PromotionCard } from "@/components/promotion-card"
 import { Badge } from "@/components/ui/badge"
 import { getSeoConfig } from "@/lib/seo"
+import { buildPageMetadataOverrides } from "@/lib/seo-utils"
 import type { Metadata } from "next"
 
 export async function generateMetadata(): Promise<Metadata> {
   const seoConfig = await getSeoConfig()
 
-  return {
+  const overrides = buildPageMetadataOverrides(seoConfig, {
     title: "Promociones y Ofertas Especiales | Nexius",
     description:
       "Descubre nuestras promociones exclusivas y ofertas especiales en desarrollo web, diseño y tecnología. ¡Aprovecha estos descuentos por tiempo limitado!",
-    keywords: "promociones, ofertas, descuentos, desarrollo web, diseño, tecnología, Nexius",
-    openGraph: {
-      title: "Promociones y Ofertas Especiales | Nexius",
-      description:
-        "Descubre nuestras promociones exclusivas y ofertas especiales en desarrollo web, diseño y tecnología.",
-      url: `${seoConfig.siteUrl}/promociones`,
-      siteName: "Nexius",
-      images: [
-        {
-          url: `${seoConfig.siteUrl}/placeholder.svg?height=630&width=1200&text=Promociones+Nexius`,
-          width: 1200,
-          height: 630,
-          alt: "Promociones Nexius",
-        },
-      ],
-      type: "website",
-    },
-    alternates: {
-      canonical: "/promociones",
-    },
-  }
+    image: `${seoConfig.siteUrl}/placeholder.svg?height=630&width=1200&text=Promociones+Nexius`,
+    path: "/promociones",
+  })
+
+  return overrides as Metadata
 }
 
 // Disable caching for this page to always show the latest promotions

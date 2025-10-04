@@ -10,6 +10,8 @@ import { Separator } from "@/components/ui/separator"
 import { ArrowLeft, Calendar, Clock, Share2, Bookmark, ThumbsUp } from "lucide-react"
 import { MarkdownContent } from "@/components/markdown-content"
 import type { Metadata } from "next"
+import { getSeoConfig } from "@/lib/seo"
+import { buildPageMetadataOverrides } from "@/lib/seo-utils"
 
 interface BlogPostPageProps {
   params: Promise<{
@@ -21,27 +23,27 @@ export async function generateMetadata(props: BlogPostPageProps): Promise<Metada
   const params = await props.params;
   const post = await getBlogPostBySlug(params.slug)
 
+  const seoConfig = await getSeoConfig()
+
   if (!post) {
-    return {
+    return buildPageMetadataOverrides(seoConfig, {
       title: "Artículo no encontrado",
       description: "El artículo que estás buscando no existe o ha sido eliminado.",
-    }
+    }) as Metadata
   }
 
-  return {
+  const overrides = buildPageMetadataOverrides(seoConfig, {
     title: post.seoTitle || post.title,
     description: post.seoDescription || post.excerpt,
+    image: post.coverImage,
+    path: `/blog/${params.slug}`,
+  })
+
+  return {
+    ...(overrides as Metadata),
     openGraph: {
-      title: post.seoTitle || post.title,
-      description: post.seoDescription || post.excerpt,
-      images: [
-        {
-          url: post.coverImage,
-          width: 1200,
-          height: 630,
-          alt: post.title,
-        },
-      ],
+      ...(overrides as any).openGraph,
+      images: [{ url: post.coverImage, width: 1200, height: 630, alt: post.title }],
     },
   }
 }

@@ -3,6 +3,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { getProjectBySlug } from "@/lib/projects"
 import { getSeoConfig } from "@/lib/seo"
+import { buildPageMetadataOverrides, buildSiteJsonLd } from "@/lib/seo-utils"
 import { formatDate } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -25,155 +26,62 @@ export async function generateMetadata(props: ProjectPageProps): Promise<Metadat
   const seoConfig = await getSeoConfig()
 
   if (!project) {
-    return {
+    return buildPageMetadataOverrides(seoConfig, {
       title: "Proyecto no encontrado | " + seoConfig.title,
       description: "El proyecto que estás buscando no existe o ha sido eliminado.",
-      robots: {
-        index: false,
-        follow: false,
-      },
-    }
+    }) as Metadata
   }
 
-  // Construir título SEO optimizado
   const title = `${project.name} | Proyecto de ${seoConfig.title}`
-  
-  // Construir descripción SEO optimizada
-  const description = project.description || `Descubre ${project.name}, un proyecto desarrollado por ${seoConfig.title}. ${project.tags?.slice(0, 3).join(', ')}.`
+  const description = project.description || `Descubre ${project.name}, un proyecto desarrollado por ${seoConfig.title}. ${project.tags?.slice(0, 3).join(', ')}`
+  const canonical = `/portafolio/${params.slug}`
 
-  // Construir keywords dinámicas
-  const projectKeywords = [
-    project.name.toLowerCase(),
-    ...(project.tags || []),
-    project.category?.toLowerCase() || '',
-    'proyecto', 'desarrollo', 'portfolio'
-  ].filter(Boolean).join(', ')
+  const overrides = buildPageMetadataOverrides(seoConfig, {
+    title,
+    description,
+    image: project.image ? `${seoConfig.siteUrl}${project.image}` : `${seoConfig.siteUrl}${seoConfig.ogImage}`,
+    path: canonical,
+  })
 
-  const combinedKeywords = `${projectKeywords}, ${seoConfig.keywords}`
-
-  // URL canónica
-  const canonicalUrl = `${seoConfig.siteUrl}/portafolio/${params.slug}`
-
-  // Datos estructurados para el proyecto
-  const structuredData = {
+  // Attach breadcrumb JSON-LD in other if needed by the page rendering
+  const breadcrumbStructuredData = {
     "@context": "https://schema.org",
-    "@type": "CreativeWork",
-    "name": project.name,
-    "description": project.description,
-    "image": project.image ? `${seoConfig.siteUrl}${project.image}` : `${seoConfig.siteUrl}${seoConfig.ogImage}`,
-    "url": canonicalUrl,
-    "creator": {
-      "@type": "Organization",
-      "name": seoConfig.title,
-      "url": seoConfig.siteUrl
-    },
-    "dateCreated": project.completionDate,
-    "genre": project.category,
-    "keywords": project.tags?.join(', '),
-    ...(project.demoUrl && { "workExample": project.demoUrl }),
-    ...(project.repoUrl && { "codeRepository": project.repoUrl })
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Inicio",
+        "item": seoConfig.siteUrl,
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Portafolio",
+        "item": `${seoConfig.siteUrl}/portafolio`,
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": project.name,
+        "item": `${seoConfig.siteUrl}/portafolio/${params.slug}`,
+      },
+    ],
   }
 
   return {
-    title,
-    description,
-    keywords: combinedKeywords,
-    
-    // URLs canónicas y alternativas
-    alternates: {
-      canonical: canonicalUrl,
-    },
-
-    // Open Graph
-    openGraph: {
-      title: project.name,
-      description,
-      url: canonicalUrl,
-      siteName: seoConfig.title,
-      type: 'website',
-      images: [
-        {
-          url: project.image ? `${seoConfig.siteUrl}${project.image}` : `${seoConfig.siteUrl}${seoConfig.ogImage}`,
-          width: 1200,
-          height: 630,
-          alt: project.name,
-        },
-      ],
-      locale: 'es_ES',
-    },
-
-    // Twitter Card
-    twitter: {
-      card: 'summary_large_image',
-      title: project.name,
-      description,
-      images: [project.image ? `${seoConfig.siteUrl}${project.image}` : `${seoConfig.siteUrl}${seoConfig.ogImage}`],
-      ...(seoConfig.twitterHandle && { site: seoConfig.twitterHandle }),
-      ...(seoConfig.twitterHandle && { creator: seoConfig.twitterHandle }),
-    },
-
-    // Metadatos adicionales
+    ...(overrides as Metadata),
     other: {
-      // Datos estructurados JSON-LD
-      'script:ld+json': JSON.stringify(structuredData),
-      
-      // Metadatos personalizados de SEO config
+      ...(overrides as any).other,
+      'script:ld+json': buildSiteJsonLd(seoConfig, null, { path: canonical }),
+      'breadcrumb:ld+json': JSON.stringify(breadcrumbStructuredData),
       ...seoConfig.additionalMetaTags?.reduce((acc, tag) => {
         acc[tag.name] = tag.content
         return acc
       }, {} as Record<string, string>),
-
-      // Metadatos específicos del proyecto
-      'article:author': seoConfig.title,
-      'article:section': project.category || 'Proyecto',
-      'article:tag': project.tags?.join(', '),
-      
-      // Metadatos para redes sociales
-      'og:image:alt': project.name,
-      'og:image:type': 'image/jpeg',
-      'og:locale': 'es_ES',
-      
-      // Metadatos técnicos
       'theme-color': seoConfig.themeColor,
-      'color-scheme': 'light dark',
     },
-
-    // Robots
-    robots: {
-      index: true,
-      follow: true,
-      googleBot: {
-        index: true,
-        follow: true,
-        'max-video-preview': -1,
-        'max-image-preview': 'large',
-        'max-snippet': -1,
-      },
-    },
-
-    // Metadatos para móviles
-    viewport: {
-      width: 'device-width',
-      initialScale: 1,
-      maximumScale: 1,
-    },
-
-    // Verificación de propiedad si está configurada
-    ...(seoConfig.googleAnalyticsId && {
-      verification: {
-        google: seoConfig.googleAnalyticsId,
-      },
-    }),
-
-    // App links si hay demo URL
-    ...(project.demoUrl && {
-      appLinks: {
-        web: {
-          url: project.demoUrl,
-        },
-      },
-    }),
-  }
+  } as Metadata
 }
 
 export default async function ProjectPage(props: ProjectPageProps) {
@@ -213,14 +121,6 @@ export default async function ProjectPage(props: ProjectPageProps) {
 
   return (
     <>
-      {/* JSON-LD para breadcrumbs */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(breadcrumbStructuredData)
-        }}
-      />
-
       <main className="flex min-h-screen flex-col">
         {/* Hero Section */}
         <section className="w-full py-12 md:py-24 lg:py-32 bg-gradient-to-r from-slate-900 to-slate-800 text-white">
