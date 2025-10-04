@@ -27,8 +27,11 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "No tienes permisos para editar la configuración SEO" }, { status: 403 })
     }
 
-    const data = await request.json()
-    const config = await updateSeoConfig(data)
+  const { safeParseJson } = await import('@/lib/requestUtils')
+  const parsed = await safeParseJson(request)
+  if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: 400 })
+  const data = parsed.body
+  const config = await updateSeoConfig(data)
 
     return NextResponse.json(config)
   } catch (error) {

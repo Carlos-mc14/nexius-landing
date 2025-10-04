@@ -18,9 +18,12 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
       return NextResponse.json({ error: "No tienes permisos para gestionar imágenes" }, { status: 403 })
     }
 
-    const { id } = params
-    const data = await request.json()
-    const metadata = await updateImageMetadata(id, data)
+  const { id } = params
+  const { safeParseJson } = await import('@/lib/requestUtils')
+  const parsed = await safeParseJson(request)
+  if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: 400 })
+  const data = parsed.body
+  const metadata = await updateImageMetadata(id, data)
 
     if (!metadata) {
       return NextResponse.json({ error: "Metadata no encontrada" }, { status: 404 })

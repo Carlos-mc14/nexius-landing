@@ -28,8 +28,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "No tienes permisos para añadir proyectos" }, { status: 403 })
     }
 
-    const data = await request.json()
-    const project = await createProject(data)
+  const { safeParseJson } = await import('@/lib/requestUtils')
+  const parsed = await safeParseJson(request)
+  if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: 400 })
+  const data = parsed.body
+  const project = await createProject(data)
 
     return NextResponse.json(project, { status: 201 })
   } catch (error) {

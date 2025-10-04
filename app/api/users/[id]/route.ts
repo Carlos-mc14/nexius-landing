@@ -53,7 +53,10 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 
     // Si no es el propio perfil y no es admin, no permitir cambiar el rol
     const isAdmin = session.user.role === "admin"
-    const data = await request.json()
+    const { safeParseJson } = await import("@/lib/requestUtils")
+    const parsed = await safeParseJson(request)
+    if (!parsed.ok) return NextResponse.json({ error: "Invalid JSON" }, { status: 400 })
+    const data = parsed.body
 
     if (!isAdmin && data.role && !isOwnProfile) {
       return NextResponse.json({ error: "No tienes permisos para cambiar el rol de otros usuarios" }, { status: 403 })

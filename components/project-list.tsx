@@ -10,14 +10,6 @@ export default async function ProjectList({ projectsPromise }: { projectsPromise
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h3 className="text-xl font-semibold">Proyectos en Desarrollo</h3>
-        <Link href="https://trello.com/b/4oGOuBX1/nexius-proyectos" target="_blank" rel="noopener noreferrer">
-          <Button variant="outline" size="sm">
-            Ver en Trello <ExternalLink className="ml-2 h-4 w-4" />
-          </Button>
-        </Link>
-      </div>
 
       <div className="grid gap-6">
         {projects.map((project) => (

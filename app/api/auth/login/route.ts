@@ -3,8 +3,11 @@ import { authenticateUser, createSession } from "@/lib/auth"
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json()
-    const { email, password } = body
+  const { safeParseJson } = await import("@/lib/requestUtils")
+  const parsed = await safeParseJson(request)
+  if (!parsed.ok) return NextResponse.json({ error: "Invalid JSON" }, { status: 400 })
+  const body = parsed.body
+  const { email, password } = body
 
     if (!email || !password) {
       return NextResponse.json({ error: "Email y contraseña son requeridos" }, { status: 400 })

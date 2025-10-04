@@ -15,7 +15,10 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const body = await request.json()
+  const { safeParseJson } = await import('@/lib/requestUtils')
+  const parsed = await safeParseJson(request)
+  if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: 400 })
+  const body = parsed.body
   // Minimal validation
   if (!body.companyName || !body.amount || !body.frequency) {
     return NextResponse.json({ error: "companyName, amount and frequency are required" }, { status: 400 })

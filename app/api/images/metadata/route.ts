@@ -31,8 +31,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "No tienes permisos para gestionar imágenes" }, { status: 403 })
     }
 
-    const data = await request.json()
-    const metadata = await saveImageMetadata(data)
+  const { safeParseJson } = await import('@/lib/requestUtils')
+  const parsed = await safeParseJson(request)
+  if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: 400 })
+  const data = parsed.body
+  const metadata = await saveImageMetadata(data)
 
     return NextResponse.json(metadata, { status: 201 })
   } catch (error) {

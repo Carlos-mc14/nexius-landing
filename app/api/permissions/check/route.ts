@@ -12,7 +12,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 })
     }
 
-    const body = await request.json()
+      const { safeParseJson } = await import("@/lib/requestUtils")
+      const parsed = await safeParseJson(request)
+      if (!parsed.ok) return NextResponse.json({ error: "Invalid JSON" }, { status: 400 })
+      const body = parsed.body
     const { permission } = body
 
     if (!permission) {

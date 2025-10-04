@@ -54,6 +54,11 @@ const navigation = [
     href: "/dashboard/seo",
     icon: Search,
   },
+  {
+    name: "Transactions",
+    href: "/dashboard/transactions",
+    icon: FileText,
+  },
 ]
 
 export function DashboardNav() {

@@ -77,9 +77,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Obtener y validar los datos
-    const body = await request.json()
-    const result = contactSchema.safeParse(body)
+  // Obtener y validar los datos
+  const { safeParseJson } = await import('@/lib/requestUtils')
+  const parsed = await safeParseJson(request)
+  if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: 400 })
+  const result = contactSchema.safeParse(parsed.body)
 
     if (!result.success) {
       return NextResponse.json(

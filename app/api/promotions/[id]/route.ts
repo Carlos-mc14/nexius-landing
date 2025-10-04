@@ -29,15 +29,18 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
       return NextResponse.json({ error: "No autorizado" }, { status: 401 })
     }
 
-    const { id } = params
-    const canEditPromotion = await checkPermission(session.user.id, "promotions:edit")
+  const { id } = params
+  const canEditPromotion = await checkPermission(session.user.id, "promotions:edit")
 
     if (!canEditPromotion) {
       return NextResponse.json({ error: "No tienes permisos para editar promociones" }, { status: 403 })
     }
 
-    const data = await request.json()
-    const promotion = await updatePromotion(id, data)
+  const { safeParseJson } = await import('@/lib/requestUtils')
+  const parsed = await safeParseJson(request)
+  if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: 400 })
+  const data = parsed.body
+  const promotion = await updatePromotion(id, data)
 
     return NextResponse.json(promotion, { status: 200 })
   } catch (error) {

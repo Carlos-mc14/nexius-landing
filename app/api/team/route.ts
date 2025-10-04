@@ -40,8 +40,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "No tienes permisos para añadir miembros al equipo" }, { status: 403 })
     }
 
-    const data = await request.json()
-    const teamMember = await createTeamMember(data)
+  const { safeParseJson } = await import("@/lib/requestUtils")
+  const parsed = await safeParseJson(request)
+  if (!parsed.ok) return NextResponse.json({ error: "Invalid JSON" }, { status: 400 })
+  const data = parsed.body
+  const teamMember = await createTeamMember(data)
 
     return NextResponse.json(teamMember, { status: 201 })
   } catch (error) {

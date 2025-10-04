@@ -21,7 +21,7 @@ export async function PUT(request: Request, props: { params: Promise<{ section: 
       )
     }
 
-    const { section } = await params
+  const { section } = params
 
     // Validate section name to prevent injection
     const validSections = ["hero", "services", "testimonials", "whyChooseUs", "contactInfo", "footer"]
@@ -29,14 +29,17 @@ export async function PUT(request: Request, props: { params: Promise<{ section: 
       return NextResponse.json({ error: `Sección inválida: ${section}` }, { status: 400 })
     }
 
-    const data = await request.json()
+  const { safeParseJson } = await import('@/lib/requestUtils')
+  const parsed = await safeParseJson(request)
+  if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: 400 })
+  const data = parsed.body
 
     // Update the section in the database
     await updateHomepageSection(section, data)
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error(`Error updating homepage section ${params.section}:`, error)
+  console.error(`Error updating homepage section ${params.section}:`, error)
 
     const errorMessage = error instanceof Error ? error.message : "Error interno del servidor"
 

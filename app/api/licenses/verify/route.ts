@@ -1,18 +1,12 @@
 import { NextResponse } from "next/server"
 import { findLicenseByDomain } from "@/lib/licenses"
+import { requireApiKeyFromHeaders } from "@/lib/apiAuth"
 
 export async function GET(request: Request) {
   const url = new URL(request.url)
-  const providedKey = request.headers.get("x-api-key") || url.searchParams.get("apiKey")
-  const serverKey = process.env.NEXIUS_API_KEY || ""
+  const check = requireApiKeyFromHeaders(request.headers)
+  if (!check.ok) return NextResponse.json(check.body, { status: check.status })
 
-  if (!serverKey) {
-    return NextResponse.json({ error: "Server API key not configured" }, { status: 500 })
-  }
-
-  if (!providedKey || providedKey !== serverKey) {
-    return NextResponse.json({ error: "Invalid API key" }, { status: 401 })
-  }
   const domain = url.searchParams.get("domain")
   const licenseKey = url.searchParams.get("licenseKey")
 
