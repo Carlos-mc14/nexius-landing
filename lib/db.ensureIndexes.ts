@@ -19,10 +19,21 @@ export async function ensureIndexes() {
     // Licenses: index on domain and licenseKey
     await db.collection("licenses").createIndex({ domain: 1 })
     await db.collection("licenses").createIndex({ licenseKey: 1 })
+  // Licenses additional helpful indexes
+  await db.collection("licenses").createIndex({ rucOrDni: 1 })
+  await db.collection("licenses").createIndex({ status: 1 })
 
     // Images/metadata: index by folder and createdAt
     await db.collection("images").createIndex({ folder: 1 })
     await db.collection("images").createIndex({ createdAt: -1 })
+
+  // Notification Jobs
+  await db.collection("licenseNotificationJobs").createIndex({ status: 1, severityScore: -1, createdAt: 1 })
+  await db.collection("licenseNotificationJobs").createIndex({ hash: 1 }, { unique: true })
+
+  // Notification Logs
+  await db.collection("licenseNotificationLogs").createIndex({ rucOrDni: 1, sentAt: -1 })
+  await db.collection("licenseNotificationLogs").createIndex({ jobId: 1 })
 
     return true
   } catch (error) {

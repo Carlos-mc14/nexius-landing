@@ -4,13 +4,17 @@ import { createLicense, findLicenses } from "@/lib/licenses"
 export async function GET(request: Request) {
   const q = new URL(request.url).searchParams
   const domain = q.get("domain")
-
   if (domain) {
-    // Redirect to verify endpoint handler
     return NextResponse.redirect(`/api/licenses/verify?domain=${encodeURIComponent(domain)}`)
   }
-
-  const list = await findLicenses()
+  const status = q.get('status') // comma separated
+  let filter: any = {}
+  if (status) {
+    const arr = status.split(',').map(s => s.trim()).filter(Boolean)
+    if (arr.length === 1) filter.status = arr[0]
+    else if (arr.length > 1) filter.status = { $in: arr }
+  }
+  const list = await findLicenses(filter)
   return NextResponse.json(list)
 }
 
