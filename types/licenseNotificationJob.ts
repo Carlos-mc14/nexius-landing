@@ -24,6 +24,10 @@ export interface LicenseNotificationJob {
   totalLate: number
   totalDue: number
   message: string
+  /** Optional channel where the notification will be dispatched (e.g. whatsapp, email) */
+  channel?: string
+  /** Optional origin tag identifying the producer workflow (e.g. daily-aggregator) */
+  origin?: string
   status: 'pending' | 'sent' | 'failed'
   attempts: number
   hash: string

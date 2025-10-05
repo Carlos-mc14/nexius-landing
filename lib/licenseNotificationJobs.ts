@@ -28,6 +28,8 @@ export async function upsertNotificationJob(payload: Omit<LicenseNotificationJob
   const doc: any = {
     ...payload,
     licenseIds: payload.licenseIds,
+    channel: payload.channel,
+    origin: payload.origin,
     status: 'pending',
     attempts: 0,
     hash,

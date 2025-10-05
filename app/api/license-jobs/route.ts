@@ -36,6 +36,8 @@ export async function POST(request: Request) {
       totalDue: raw.totalDue || 0,
       message: raw.message,
       scheduledAt: raw.scheduledAt || null,
+      channel: raw.channel,
+      origin: raw.origin,
     }
     const res = await upsertNotificationJob(payload)
     created.push(res)
