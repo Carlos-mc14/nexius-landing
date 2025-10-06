@@ -22,8 +22,14 @@ export async function insertTransaction(payload: TransactionRecord) {
     try {
       // Convert _id to ObjectId when inserting
       const oid = new ObjectId(_id)
-      const res = await db.collection(COLLECTION).insertOne({ _id: oid, ...doc })
-      return { ...doc, _id: res.insertedId.toString() }
+      await db.collection(COLLECTION).insertOne({ _id: oid, ...doc })
+      const stored = { ...doc, _id }
+      try {
+        fireAndForgetOdooSync(stored as TransactionRecord)
+      } catch (e) {
+        console.warn("[OdooSync] Unexpected error scheduling sync", e)
+      }
+      return stored
     } catch (err: any) {
       // Duplicate key or invalid id
       if (err?.code === 11000) {

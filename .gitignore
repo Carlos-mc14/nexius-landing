@@ -34,3 +34,6 @@ next-env.d.ts
 
 #py
 *.py
+
+# odoo
+odoo-nexius-link
