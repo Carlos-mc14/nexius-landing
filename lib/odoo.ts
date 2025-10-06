@@ -5,7 +5,6 @@
  */
 import type { TransactionProduct, TransactionRecord } from "@/types/transaction"
 import type { LicenseRecord } from "@/types/license"
-import { getLicenseById } from "./licenses"
 
 // Configuración vía variables de entorno
 const ODOO_ENABLED = process.env.ODOO_SYNC_ENABLED === "true"
@@ -30,10 +29,11 @@ export type OdooSyncResult = {
  */
 type LicenseWithId = LicenseRecord & { _id?: string }
 
-async function mapTransactionToOdooPayload(tx: TransactionRecord) {
-  let license: LicenseWithId | null = null
-  if (tx.licenseId) {
+async function mapTransactionToOdooPayload(tx: TransactionRecord, providedLicense?: LicenseRecord | null) {
+  let license: LicenseWithId | null = (providedLicense as LicenseWithId) || null
+  if (!license && tx.licenseId) {
     try {
+      const { getLicenseById } = await import("./licenses")
       const fetched = (await getLicenseById(tx.licenseId)) as LicenseWithId | null
       license = fetched
     } catch (err) {
@@ -45,7 +45,7 @@ async function mapTransactionToOdooPayload(tx: TransactionRecord) {
     }
   }
 
-  const baseAmount = Number(tx.amount || 0)
+  const baseAmount = Number(tx.amount || license?.amount || 0)
   const contactName = tx.contactName || license?.companyName || tx.payerNormalizedName || null
   const contactPhone = tx.contactPhone || license?.phoneNumber || null
   const contactEmail = tx.contactEmail || license?.email || null
@@ -64,7 +64,7 @@ async function mapTransactionToOdooPayload(tx: TransactionRecord) {
         {
           name: derivedProductName,
           quantity: 1,
-          unitPrice: baseAmount,
+          unitPrice: baseAmount || Number(license?.amount || 0),
           code: license?.licenseKey,
           description: license?.serviceType || undefined,
         },
@@ -72,7 +72,7 @@ async function mapTransactionToOdooPayload(tx: TransactionRecord) {
 
   const products = rawProducts.map((item) => {
     const quantity = Number(item.quantity ?? 1) || 1
-    const unitPrice = Number((item.unit_price ?? item.unitPrice) ?? baseAmount) || 0
+    const unitPrice = Number((item.unit_price ?? item.unitPrice) ?? baseAmount ?? license?.amount ?? 0) || 0
     return {
       name: item.name || derivedProductName,
       quantity,
@@ -90,13 +90,13 @@ async function mapTransactionToOdooPayload(tx: TransactionRecord) {
     timestamp: tx.timestamp,
     date: tx.date || new Date(tx.timestamp).toISOString(),
     amount,
-    currency: tx.currency || "PEN",
+    currency: tx.currency || license?.currency || "PEN",
     type: tx.transactionType || "payment",
     contact_name: contactName,
     contact_phone: contactPhone,
     contact_email: contactEmail,
     contact_document: contactDocument,
-    license_id: tx.licenseId || null,
+    license_id: tx.licenseId || license?._id || null,
     license_key: tx.licenseKey || license?.licenseKey || null,
     license_company_name: license?.companyName || null,
     license_service_type: license?.serviceType || null,
@@ -111,7 +111,7 @@ async function mapTransactionToOdooPayload(tx: TransactionRecord) {
       notification_title: tx.notificationTitle || null,
       notification_text: tx.notificationText || null,
       notification_big_text: tx.notificationBigText || null,
-      license_id: tx.licenseId || null,
+      license_id: tx.licenseId || license?._id || null,
       license_key: license?.licenseKey || tx.licenseKey || null,
       license_company_name: license?.companyName || null,
       license_document: contactDocument,
@@ -138,7 +138,7 @@ async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: nu
  * Envía una transacción a Odoo. Idempotencia basada en external_transaction_id que debe manejar el endpoint.
  * No lanza excepción; retorna objeto resultado para logging.
  */
-export async function pushPaymentToOdoo(tx: TransactionRecord): Promise<OdooSyncResult> {
+async function sendPayloadToOdoo(payload: any): Promise<OdooSyncResult> {
   if (!ODOO_ENABLED) {
     return { ok: false, error: "Odoo sync disabled (set ODOO_SYNC_ENABLED=true)", status: 503 }
   }
@@ -146,7 +146,6 @@ export async function pushPaymentToOdoo(tx: TransactionRecord): Promise<OdooSync
     return { ok: false, error: "ODOO_BASE_URL not configured" }
   }
   const url = `${ODOO_BASE_URL.replace(/\/$/, "")}${ODOO_PAYMENTS_ENDPOINT}`
-  const payload = await mapTransactionToOdooPayload(tx)
   try {
     const res = await fetchWithTimeout(
       url,
@@ -154,7 +153,6 @@ export async function pushPaymentToOdoo(tx: TransactionRecord): Promise<OdooSync
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          // Header de auth; adapta según tu implementación en Odoo
           Authorization: `Bearer ${ODOO_API_KEY}`,
           "X-External-Source": "nexius",
         },
@@ -178,17 +176,30 @@ export async function pushPaymentToOdoo(tx: TransactionRecord): Promise<OdooSync
   }
 }
 
-/**
- * Dispara la sincronización de forma no bloqueante.
- * Se usa después de insertar/upsert transacción. Si falla, sólo log.
- */
-export function fireAndForgetOdooSync(tx: TransactionRecord) {
-  // No await para no bloquear solicitud principal
-  pushPaymentToOdoo(tx).then((res) => {
-    if (!res.ok) {
-      console.warn("[OdooSync] Failed", { txId: tx._id, error: res.error, status: res.status })
-    } else {
-      console.log("[OdooSync] OK", { txId: tx._id, status: res.status, odoo: res.data })
-    }
-  })
+export async function pushPaymentToOdoo(tx: TransactionRecord, license?: LicenseRecord | null): Promise<OdooSyncResult> {
+  const payload = await mapTransactionToOdooPayload(tx, license)
+  return sendPayloadToOdoo(payload)
+}
+
+export async function pushLicensePaymentToOdoo(license: LicenseRecord, transaction: TransactionRecord): Promise<OdooSyncResult> {
+  const payload = await mapTransactionToOdooPayload(transaction, license)
+  return sendPayloadToOdoo(payload)
+}
+
+function logResult(context: Record<string, unknown>, res: OdooSyncResult) {
+  if (!res.ok) {
+    console.warn("[OdooSync] Failed", { ...context, error: res.error, status: res.status })
+  } else {
+    console.log("[OdooSync] OK", { ...context, status: res.status, odoo: res.data })
+  }
+}
+
+export function fireAndForgetOdooSync(tx: TransactionRecord, license?: LicenseRecord | null) {
+  pushPaymentToOdoo(tx, license).then((res) => logResult({ txId: tx._id }, res))
+}
+
+export function fireAndForgetOdooSyncForLicense(license: LicenseRecord, transaction: TransactionRecord) {
+  pushLicensePaymentToOdoo(license, transaction).then((res) =>
+    logResult({ txId: transaction._id, licenseId: license._id || license.licenseKey }, res),
+  )
 }

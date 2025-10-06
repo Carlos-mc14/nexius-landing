@@ -21,6 +21,7 @@ export interface LicensePaymentRecord {
   periodEnd?: string
   notes?: string
   createdAt?: string
+  transactionId?: string
 }
 
 export interface LicenseRecord {
@@ -54,6 +55,7 @@ export interface LicenseRecord {
   notes?: string
   // Payment history (embedded for now)
   paymentHistory?: LicensePaymentRecord[]
+  lastTransactionId?: string
   // Payment intent (for external mobile payment confirmation flows)
   currentPaymentCode?: string // short alphanumeric code user sends back or appears in Yape notification
   currentPaymentCodeExpiresAt?: string

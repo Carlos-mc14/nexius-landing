@@ -1,6 +1,9 @@
 import { connectToDatabase } from "./db"
 import type { LicenseRecord, LicensePaymentRecord, ScheduleMode } from "@/types/license"
+import type { TransactionRecord } from "@/types/transaction"
 import { ObjectId } from "mongodb"
+import { fireAndForgetOdooSyncForLicense } from "./odoo"
+import { getTransactionById } from "./transactions"
 
 const COLLECTION = "licenses"
 
@@ -121,6 +124,8 @@ export async function updateLicense(id: string, update: Partial<LicenseRecord>) 
   if (!current) return null
 
   const patch: any = { ...update }
+  let triggerOdooSync = false
+  let odooTransactionId: string | null = null
 
   // Status transition to paid => add payment history + extend period
   if (update.status === "paid") {
@@ -134,14 +139,30 @@ export async function updateLicense(id: string, update: Partial<LicenseRecord>) 
       periodEnd: current.endDate,
       createdAt: now
     }
+    const incomingTransactionId = typeof patch.transactionId === "string" ? patch.transactionId : undefined
+    const existingHistory: LicensePaymentRecord[] = Array.isArray(current.paymentHistory) ? current.paymentHistory : []
+    const alreadyLogged = incomingTransactionId
+      ? existingHistory.some((entry) => entry.transactionId === incomingTransactionId)
+      : false
+
+    if (incomingTransactionId) {
+      payment.transactionId = incomingTransactionId
+      patch.lastTransactionId = incomingTransactionId
+      odooTransactionId = incomingTransactionId
+      triggerOdooSync = !alreadyLogged
+    }
     if (!Array.isArray(current.paymentHistory)) {
       await db.collection(COLLECTION).updateOne({ _id }, { $set: { paymentHistory: [] } })
     }
-    await db.collection(COLLECTION).updateOne({ _id }, { $push: { paymentHistory: { $each: [payment] } } as any })
+    if (!alreadyLogged) {
+      await db.collection(COLLECTION).updateOne({ _id }, { $push: { paymentHistory: { $each: [payment] } } as any })
+    }
 
-    const extended = extendPeriod(current)
-    patch.endDate = extended.endDate
-    patch.nextPaymentDue = extended.nextPaymentDue
+    if (!alreadyLogged) {
+      const extended = extendPeriod(current)
+      patch.endDate = extended.endDate
+      patch.nextPaymentDue = extended.nextPaymentDue
+    }
     // Clear any pending payment intent
     patch.currentPaymentCode = null
     patch.currentPaymentCodeExpiresAt = null
@@ -187,7 +208,36 @@ export async function updateLicense(id: string, update: Partial<LicenseRecord>) 
   await db.collection(COLLECTION).updateOne({ _id }, { $set: { ...patch, updatedAt: now } })
   const doc = await db.collection(COLLECTION).findOne({ _id })
   if (!doc) return null
-  return { ...doc, _id: doc._id.toString() }
+
+  const normalized = { ...doc, _id: doc._id.toString() } as LicenseRecord & { _id: string }
+
+  if (triggerOdooSync && odooTransactionId) {
+    try {
+      const tx = await getTransactionById(odooTransactionId)
+      if (!tx) {
+        console.warn("[OdooSync] Transaction not found for license", { licenseId: id, transactionId: odooTransactionId })
+      } else {
+        const enrichedTx = {
+          ...tx,
+          licenseId: tx.licenseId ?? normalized._id,
+          licenseKey: tx.licenseKey ?? normalized.licenseKey,
+          contactName: tx.contactName ?? normalized.companyName,
+          contactPhone: tx.contactPhone ?? normalized.phoneNumber,
+          contactEmail: tx.contactEmail ?? normalized.email,
+          contactDocument: tx.contactDocument ?? normalized.rucOrDni,
+        } as TransactionRecord
+        fireAndForgetOdooSyncForLicense(normalized as LicenseRecord, enrichedTx)
+      }
+    } catch (err) {
+      console.warn("[OdooSync] Failed to schedule license sync", {
+        licenseId: id,
+        transactionId: odooTransactionId,
+        error: (err as Error)?.message,
+      })
+    }
+  }
+
+  return normalized
 }
 
 export async function getLicenseById(id: string) {

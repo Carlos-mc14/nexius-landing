@@ -1,7 +1,7 @@
 import { connectToDatabase } from "./db"
 import type { TransactionRecord } from "@/types/transaction"
 import { ObjectId } from "mongodb"
-import { fireAndForgetOdooSync } from "./odoo"
+// Odoo sync se dispara al confirmar pagos desde licencias; aquí sólo persistimos transacciones.
 
 const COLLECTION = "transactions"
 
@@ -22,14 +22,8 @@ export async function insertTransaction(payload: TransactionRecord) {
     try {
       // Convert _id to ObjectId when inserting
       const oid = new ObjectId(_id)
-      await db.collection(COLLECTION).insertOne({ _id: oid, ...doc })
-      const stored = { ...doc, _id }
-      try {
-        fireAndForgetOdooSync(stored as TransactionRecord)
-      } catch (e) {
-        console.warn("[OdooSync] Unexpected error scheduling sync", e)
-      }
-      return stored
+      const res = await db.collection(COLLECTION).insertOne({ _id: oid, ...doc })
+      return { ...doc, _id: res.insertedId.toString() }
     } catch (err: any) {
       // Duplicate key or invalid id
       if (err?.code === 11000) {
@@ -40,14 +34,7 @@ export async function insertTransaction(payload: TransactionRecord) {
   }
 
   const res = await db.collection(COLLECTION).insertOne(doc)
-  const stored = { ...doc, _id: res.insertedId.toString() }
-  // Sincronizar con Odoo en segundo plano (no crítico para la respuesta al cliente)
-  try {
-    fireAndForgetOdooSync(stored as TransactionRecord)
-  } catch (e) {
-    console.warn("[OdooSync] Unexpected error scheduling sync", e)
-  }
-  return stored
+  return { ...doc, _id: res.insertedId.toString() }
 }
 
 export async function upsertTransaction(payload: TransactionRecord) {
@@ -66,13 +53,7 @@ export async function upsertTransaction(payload: TransactionRecord) {
     .updateOne({ _id: oid }, { $setOnInsert: { ...doc, createdAt: now }, $set: { updatedAt: now } }, { upsert: true })
   const found = await db.collection(COLLECTION).findOne({ _id: oid })
   if (!found) return null
-  const stored = { ...found, _id: found._id.toString() }
-  try {
-    fireAndForgetOdooSync(stored as TransactionRecord)
-  } catch (e) {
-    console.warn("[OdooSync] Unexpected error scheduling sync", e)
-  }
-  return stored
+  return { ...found, _id: found._id.toString() }
 }
 
 export async function insertManyTransactions(docs: TransactionRecord[]) {
@@ -114,11 +95,11 @@ export async function findTransactions(limit = 100) {
   return docs.map((d) => ({ ...d, _id: d._id.toString() }))
 }
 
-export async function getTransactionById(id: string) {
+export async function getTransactionById(id: string): Promise<TransactionRecord | null> {
   const { db } = await connectToDatabase()
   const doc = await db.collection(COLLECTION).findOne({ _id: new ObjectId(id) })
   if (!doc) return null
-  return { ...doc, _id: doc._id.toString() }
+  return { ...doc, _id: doc._id.toString() } as TransactionRecord
 }
 
 export async function updateTransaction(id: string, patch: Partial<TransactionRecord>) {
