@@ -42,7 +42,7 @@ export default function Navbar() {
     { name: "Promociones", href: "/promociones" },
     { name: "Portafolio", href: "/portafolio" },
     { name: "Equipo", href: "/equipo" },
-    { name: "Contacto", href: "/#contacto" },
+    { name: "Blog", href: "/blog" },
   ]
 
   return (

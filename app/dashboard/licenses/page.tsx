@@ -12,13 +12,8 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet"
 import { Search, Plus, RefreshCw, Copy, Edit, CheckCircle2, AlertCircle, Clock, XCircle, DollarSign, Calendar, Building2, CreditCard, Filter } from "lucide-react"
 
 type License = any
@@ -48,8 +43,14 @@ export default function LicensesPage() {
   const [loading, setLoading] = useState(false)
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<License | null>(null)
+  const [createdLicense, setCreatedLicense] = useState<License | null>(null)
+  const [sendingEmail, setSendingEmail] = useState(false)
+  const [emailSent, setEmailSent] = useState(false)
+  const [sendingWhatsapp, setSendingWhatsapp] = useState(false)
+  const [whatsappSent, setWhatsappSent] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
+  const [historyOpen, setHistoryOpen] = useState(false)
   const [form, setForm] = useState<any>({ 
     companyName: "", rucOrDni: "", phoneNumber: "", email: "", amount: 0, currency: "PEN", 
     frequency: "monthly", scheduleMode: "manual", domain: "", serviceType: "", status: "pending", 
@@ -117,8 +118,16 @@ export default function LicensesPage() {
       headers: { "Content-Type": "application/json" } 
     })
     if (res.ok) {
-      setOpen(false)
-      fetchList()
+      if (editing) {
+        setOpen(false)
+        fetchList()
+      } else {
+        // Nueva licencia creada: mantener modal abierto y mostrar opciones de envío
+        const data = await res.json()
+        setCreatedLicense(data)
+        setForm(data) // Para mostrar posibles campos generados (licenseKey, etc.)
+        fetchList()
+      }
     } else {
       const err = await res.json()
       alert(err.error || "Error al guardar")
@@ -137,6 +146,71 @@ export default function LicensesPage() {
 
   function copyLicenseKey(key: string) {
     navigator.clipboard?.writeText(key)
+  }
+
+  function buildWhatsappUrl(lic: any) {
+    if (!lic) return "#"
+    const start = lic.startDate ? new Date(lic.startDate).toLocaleDateString('es-PE') : '—'
+    const end = lic.endDate ? new Date(lic.endDate).toLocaleDateString('es-PE') : '—'
+    const statusLabels: Record<string,string> = {
+      paid: 'Pagado',
+      pending: 'Pendiente',
+      overdue: 'Vencido',
+      cancelled: 'Cancelado'
+    }
+    const frecuencia = lic.frequency === 'monthly' ? 'Mensual' : 'Anual'
+    const lines = [
+      `Hola ${lic.companyName || ''} 👋`,
+      'Te compartimos los detalles de tu licencia:',
+      '',
+      `🛠 Servicio: ${lic.serviceType || '—'}`,
+      `💵 Monto: ${lic.amount} ${lic.currency || ''} (${frecuencia})`,
+      `📅 Vigencia: ${start} - ${end}`,
+      `⚙️ Estado: ${statusLabels[lic.status] || lic.status || '—'}`,
+      '',
+      'Guía de pagos:',
+      'https://www.nexius.lat/blog/como-pagar-licencias-nexius',
+      '',
+      'Gracias por confiar en Nexius 🚀'
+    ].join('\n')
+    const encoded = encodeURIComponent(lines)
+    const cleanedPhone = (lic.phoneNumber || '').replace(/[^0-9]/g,'')
+    return cleanedPhone
+      ? `https://wa.me/${cleanedPhone}?text=${encoded}`
+      : `https://wa.me/?text=${encoded}`
+  }
+
+  async function sendLicenseEmail() {
+    if (!createdLicense) return
+    setSendingEmail(true)
+    setEmailSent(false)
+    try {
+      const resp = await fetch(`/api/licenses/${createdLicense._id}/send-email`, { method: 'POST' })
+      if (resp.ok) setEmailSent(true)
+      else {
+        const err = await resp.json().catch(() => ({}))
+        alert(err.error || 'Error al enviar correo')
+      }
+    } finally {
+      setSendingEmail(false)
+    }
+  }
+
+  async function sendWhatsappViaChatwoot() {
+    if (!createdLicense) return
+    setSendingWhatsapp(true)
+    setWhatsappSent(false)
+    try {
+      const resp = await fetch(`/api/licenses/${createdLicense._id}/send-whatsapp`, { method: 'POST' })
+      if (resp.ok) {
+        setWhatsappSent(true)
+      } else {
+        const err = await resp.json().catch(() => ({}))
+        alert(err.error || 'Error al enviar WhatsApp')
+      }
+    } finally {
+      setSendingWhatsapp(false)
+    }
   }
 
   const stats = {
@@ -581,32 +655,75 @@ export default function LicensesPage() {
           </div>
 
           {editing && form.paymentHistory?.length > 0 && (
-            <div className="mt-6">
-              <h3 className="text-sm font-semibold mb-2">Historial de Pagos</h3>
-              <div className="border rounded-md divide-y">
-                {form.paymentHistory.map((p: any, idx: number) => (
-                  <div key={idx} className="p-3 text-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                    <div className="flex flex-col">
-                      <span className="font-medium">{p.amount} {p.currency || form.currency}</span>
-                      <span className="text-muted-foreground text-xs">{p.paidAt ? new Date(p.paidAt).toLocaleDateString('es-PE') : ''}</span>
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {p.method && <span>Método: {p.method}</span>}
-                      {p.periodEnd && <span className="ml-2">Cobertura hasta: {new Date(p.periodEnd).toLocaleDateString('es-PE')}</span>}
-                    </div>
+            <div className="mt-4 flex justify-end">
+              <Sheet open={historyOpen} onOpenChange={setHistoryOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="sm">Historial de Pagos ({form.paymentHistory.length})</Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
+                  <SheetHeader>
+                    <SheetTitle>Historial de Pagos</SheetTitle>
+                    <SheetDescription>Registros registrados para esta licencia.</SheetDescription>
+                  </SheetHeader>
+                  <div className="mt-4 space-y-3">
+                    {form.paymentHistory.map((p: any, idx: number) => (
+                      <div key={idx} className="p-3 border rounded-md bg-muted/40 text-sm">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="font-medium">{p.amount} {p.currency || form.currency}</span>
+                          <span className="text-xs text-muted-foreground">{p.paidAt ? new Date(p.paidAt).toLocaleDateString('es-PE') : ''}</span>
+                        </div>
+                        <div className="text-xs text-muted-foreground space-y-1">
+                          {p.method && <div>Método: {p.method}</div>}
+                          {p.periodEnd && <div>Cobertura hasta: {new Date(p.periodEnd).toLocaleDateString('es-PE')}</div>}
+                          {p.transactionId && <div>Tx: <span className="font-mono">{p.transactionId}</span></div>}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </SheetContent>
+              </Sheet>
             </div>
           )}
 
           <DialogFooter className="mt-6 gap-2">
-            <Button variant="outline" onClick={() => setOpen(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={() => save()}>
-              {editing ? "Guardar Cambios" : "Crear Licencia"}
-            </Button>
+            {createdLicense && !editing ? (
+              <div className="flex flex-col w-full gap-3">
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="outline" onClick={() => { setCreatedLicense(null); setOpen(false) }}>Cerrar</Button>
+                  <Button 
+                    type="button" 
+                    variant={whatsappSent ? 'secondary' : 'default'}
+                    disabled={sendingWhatsapp || whatsappSent || !createdLicense.phoneNumber}
+                    onClick={sendWhatsappViaChatwoot}
+                  >
+                    {sendingWhatsapp ? 'Enviando...' : whatsappSent ? 'WhatsApp Enviado' : 'Enviar WhatsApp'}
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant={emailSent ? 'secondary' : 'default'}
+                    disabled={!createdLicense.email || sendingEmail || emailSent}
+                    onClick={sendLicenseEmail}
+                  >
+                    {sendingEmail ? 'Enviando...' : emailSent ? 'Correo Enviado' : 'Enviar por Correo'}
+                  </Button>
+                </div>
+                {!createdLicense.email && (
+                  <p className="text-xs text-muted-foreground">Agrega un correo para habilitar el envío por email.</p>
+                )}
+                {!createdLicense.phoneNumber && (
+                  <p className="text-xs text-muted-foreground">Agrega un teléfono para habilitar el envío por WhatsApp.</p>
+                )}
+              </div>
+            ) : (
+              <>
+                <Button variant="outline" onClick={() => setOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button onClick={() => save()}>
+                  {editing ? "Guardar Cambios" : "Crear Licencia"}
+                </Button>
+              </>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

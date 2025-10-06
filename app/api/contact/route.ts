@@ -54,7 +54,6 @@ async function verifyRecaptcha(token: string) {
 }
 export async function POST(request: NextRequest) {
   try {
-    console.log("🚀 Iniciando procesamiento de formulario de contacto...")
     
     // Verificar variables de entorno críticas
     const missingEnvVars = []
@@ -64,7 +63,6 @@ export async function POST(request: NextRequest) {
     if (!process.env.UPSTASH_REDIS_REST_TOKEN) missingEnvVars.push("UPSTASH_REDIS_REST_TOKEN")
     
     if (missingEnvVars.length > 0) {
-      console.error("❌ Variables de entorno faltantes:", missingEnvVars.join(", "))
       return NextResponse.json(
         { error: "Configuración del servidor incompleta. Por favor contacta al administrador." },
         { status: 500 }
@@ -73,14 +71,11 @@ export async function POST(request: NextRequest) {
     
     // Obtener la IP del cliente para rate limiting
     const ip = request.headers.get("x-forwarded-for") || "anonymous"
-    console.log("📍 IP del cliente:", ip)
 
     // Verificar rate limit
     const { success, limit, reset, remaining } = await ratelimit.limit(ip)
-    console.log("⏱️ Rate limit - Success:", success, "Remaining:", remaining)
 
     if (!success) {
-      console.warn("⚠️ Rate limit excedido para IP:", ip)
       return NextResponse.json(
         { error: "Demasiadas solicitudes. Intenta más tarde." },
         {
@@ -94,8 +89,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Obtener y validar los datos
-    console.log("📥 Parseando datos del request...")
     const { safeParseJson } = await import('@/lib/requestUtils')
     const parsed = await safeParseJson(request)
     
@@ -104,11 +97,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: parsed.error }, { status: 400 })
     }
     
-    console.log("✅ Datos parseados correctamente")
     const result = contactSchema.safeParse(parsed.body)
 
     if (!result.success) {
-      console.error("❌ Validación de esquema fallida:", result.error.format())
       return NextResponse.json(
         { error: "Datos de formulario inválidos", details: result.error.format() },
         { status: 400 },
@@ -116,15 +107,10 @@ export async function POST(request: NextRequest) {
     }
 
     const { nombre, email, telefono, empresa, servicio, mensaje, recaptchaToken } = result.data
-    console.log("👤 Procesando contacto de:", nombre, email)
-
     // Verificar reCAPTCHA
-    console.log("🔐 Verificando reCAPTCHA...")
     const recaptchaResult = await verifyRecaptcha(recaptchaToken)
-    console.log("🔐 Resultado reCAPTCHA:", { success: recaptchaResult.success, score: recaptchaResult.score })
     
     if (!recaptchaResult.success) {
-      console.error("❌ Verificación de reCAPTCHA fallida:", recaptchaResult.errorCodes)
       return NextResponse.json(
         { 
           error: 'Verificación de seguridad fallida', 
@@ -136,14 +122,11 @@ export async function POST(request: NextRequest) {
     
     // Verificar puntuación de reCAPTCHA (0.0 a 1.0, donde 1.0 es muy probablemente un humano)
     if (recaptchaResult.score < 0.5) {
-      console.warn("⚠️ Score de reCAPTCHA bajo:", recaptchaResult.score)
       return NextResponse.json(
         { error: 'La verificación de seguridad indica actividad sospechosa. Por favor, intenta nuevamente.' },
         { status: 400 }
       )
     }
-
-    console.log("📧 Preparando emails con Brevo...")
 
     // Preparar datos para Brevo API
     const brevoApiKey = process.env.BREVO_API_KEY
@@ -212,7 +195,6 @@ El equipo de Nexius
     }
 
     try {
-      console.log("📤 Enviando emails con Brevo...")
       
       // Enviar email al equipo
       const responseTeam = await fetch("https://api.brevo.com/v3/smtp/email", {
@@ -227,11 +209,8 @@ El equipo de Nexius
 
       if (!responseTeam.ok) {
         const errorTeam = await responseTeam.json()
-        console.error("❌ Error al enviar email al equipo:", errorTeam)
         throw new Error(`Error enviando email al equipo: ${errorTeam.message || responseTeam.statusText}`)
       }
-
-      console.log("✅ Email enviado al equipo exitosamente")
 
       // Enviar email de confirmación al cliente
       const responseClient = await fetch("https://api.brevo.com/v3/smtp/email", {
@@ -244,22 +223,9 @@ El equipo de Nexius
         body: JSON.stringify(emailToClient),
       })
 
-      if (!responseClient.ok) {
-        const errorClient = await responseClient.json()
-        console.error("❌ Error al enviar email al cliente:", errorClient)
-        // No lanzamos error aquí para que al menos el equipo reciba el email
-        console.warn("⚠️ Email al equipo enviado, pero falló el email de confirmación al cliente")
-      } else {
-        console.log("✅ Email de confirmación enviado al cliente exitosamente")
-      }
 
       return NextResponse.json({ success: true })
     } catch (emailError: any) {
-      console.error("❌ Error al enviar emails:", emailError)
-      console.error("Detalles del error:", {
-        message: emailError?.message,
-        code: emailError?.code,
-      })
       
       return NextResponse.json({ 
         error: "Error al enviar el correo. Por favor verifica tu configuración de Brevo.",
@@ -267,9 +233,6 @@ El equipo de Nexius
       }, { status: 500 })
     }
   } catch (error: any) {
-    console.error("❌ Error general en el servidor:", error)
-    console.error("Stack trace:", error?.stack)
-    
     return NextResponse.json({ 
       error: "Error interno del servidor",
       details: process.env.NODE_ENV === 'development' ? error?.message : undefined

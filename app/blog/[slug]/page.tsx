@@ -96,87 +96,96 @@ export default async function BlogPostPage(props: BlogPostPageProps) {
       </section>
 
       {/* Article Content */}
-      <section className="w-full py-12 md:py-24">
-        <div className="container px-4 md:px-6">
-          <div className="flex flex-col md:flex-row gap-8">
+      <section className="w-full py-8 md:py-16 bg-background">
+        <div className="container px-4 md:px-6 max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row gap-8 lg:gap-12">
             {/* Main Content */}
-            <div className="flex-1 space-y-8">
+            <article className="flex-1 space-y-8">
               {/* Back to Blog */}
-              <Link href="/blog" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary">
+              <Link href="/blog" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Volver al blog
               </Link>
 
-              {/* Cover Image */}
-              <div className="relative aspect-video w-full overflow-hidden rounded-lg border">
-                <Image
-                  src={post.coverImage || "/placeholder.svg?height=720&width=1280"}
-                  alt={post.title}
-                  fill
-                  className="object-cover"
-                  priority
-                />
-              </div>
-
-              {/* Author Info */}
-              <div className="flex items-center gap-4">
-                <div className="relative h-10 w-10 rounded-full overflow-hidden">
-                  <Image
-                    src={post.author.image || "/placeholder.svg?height=40&width=40"}
-                    alt={post.author.name}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <div>
-                  <p className="font-medium">{post.author.name}</p>
-                  <p className="text-sm text-muted-foreground">Autor</p>
-                </div>
-              </div>
-
-              {/* Article Content - Fixed to use MarkdownContent component */}
-              <div className="prose prose-slate dark:prose-invert max-w-none">
-                <MarkdownContent content={post.content} />
-              </div>
-
-              {/* Tags */}
-              {post.tags && post.tags.length > 0 && (
-                <div className="space-y-4">
-                  <h2 className="text-xl font-bold">Etiquetas</h2>
-                  <div className="flex flex-wrap gap-2">
-                    {post.tags.map((tag, index) => (
-                      <Link key={index} href={`/blog/etiqueta/${tag.toLowerCase()}`}>
-                        <Badge variant="outline" className="text-sm">
-                          {tag}
-                        </Badge>
-                      </Link>
-                    ))}
+              {/* Article Card Container */}
+              <Card className="overflow-hidden border-2">
+                <CardContent className="p-0">
+                  {/* Cover Image */}
+                  <div className="relative aspect-video w-full overflow-hidden">
+                    <Image
+                      src={post.coverImage || "/placeholder.svg?height=720&width=1280"}
+                      alt={post.title}
+                      fill
+                      className="object-cover"
+                      priority
+                    />
                   </div>
-                </div>
-              )}
 
-              {/* Social Sharing */}
-              <div className="flex items-center justify-between border-t border-b py-4">
-                <div className="flex items-center gap-4">
-                  <Button variant="ghost" size="sm" className="gap-2">
-                    <ThumbsUp className="h-4 w-4" />
-                    <span>Me gusta</span>
-                  </Button>
-                  <Button variant="ghost" size="sm" className="gap-2">
-                    <Bookmark className="h-4 w-4" />
-                    <span>Guardar</span>
-                  </Button>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="icon">
-                    <Share2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
+                  {/* Author Info */}
+                  <div className="flex items-center gap-4 p-6 pb-0">
+                    <div className="relative h-12 w-12 rounded-full overflow-hidden ring-2 ring-border">
+                      <Image
+                        src={post.author.image || "/placeholder.svg?height=40&width=40"}
+                        alt={post.author.name}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <div>
+                      <p className="font-semibold">{post.author.name}</p>
+                      <p className="text-sm text-muted-foreground">Autor</p>
+                    </div>
+                  </div>
 
-            {/* Sidebar */}
-            <div className="w-full md:w-1/3 space-y-6">
+                  <Separator className="my-6" />
+
+                  {/* Article Content - Fixed to use MarkdownContent component */}
+                  <div className="px-6 pb-8">
+                    <div className="prose prose-slate dark:prose-invert max-w-none prose-headings:scroll-mt-20 prose-a:text-primary prose-img:rounded-lg">
+                      <MarkdownContent content={post.content} />
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Tags */}
+                  {post.tags && post.tags.length > 0 && (
+                    <div className="px-6 py-6 space-y-3">
+                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Etiquetas</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {post.tags.map((tag, index) => (
+                          <Link key={index} href={`/blog/etiqueta/${tag.toLowerCase()}`}>
+                            <Badge variant="secondary" className="text-sm hover:bg-primary hover:text-primary-foreground transition-colors">
+                              #{tag}
+                            </Badge>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <Separator />
+
+                  {/* Social Sharing */}
+                  <div className="flex items-center justify-between px-6 py-4">
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="sm" className="gap-2">
+                        <Bookmark className="h-4 w-4" />
+                        <span className="hidden sm:inline">Guardar</span>
+                      </Button>
+                    </div>
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <Share2 className="h-4 w-4" />
+                      <span className="hidden sm:inline">Compartir</span>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </article>
+
+            {/* Sidebar - Sticky */}
+            <aside className="w-full md:w-80 lg:w-96 flex-shrink-0">
+              <div className="md:sticky md:top-20 space-y-6">
               {/* Related Posts */}
               <Card>
                 <CardContent className="p-6 space-y-4">
@@ -228,21 +237,22 @@ export default async function BlogPostPage(props: BlogPostPageProps) {
                 </CardContent>
               </Card>
 
-              {/* Categories */}
-              <Card>
-                <CardContent className="p-6 space-y-4">
-                  <h3 className="text-lg font-semibold">Categorías</h3>
-                  <Separator />
-                  <div className="flex flex-wrap gap-2">
-                    <Link href={`/blog/categoria/${post.category.toLowerCase()}`}>
-                      <Badge variant="secondary" className="text-sm">
-                        {post.category}
-                      </Badge>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                {/* Categories */}
+                <Card>
+                  <CardContent className="p-6 space-y-4">
+                    <h3 className="text-lg font-semibold">Categorías</h3>
+                    <Separator />
+                    <div className="flex flex-wrap gap-2">
+                      <Link href={`/blog/categoria/${post.category.toLowerCase()}`}>
+                        <Badge variant="secondary" className="text-sm hover:bg-primary hover:text-primary-foreground transition-colors">
+                          {post.category}
+                        </Badge>
+                      </Link>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </aside>
           </div>
         </div>
       </section>

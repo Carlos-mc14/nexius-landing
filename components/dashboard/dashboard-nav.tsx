@@ -11,6 +11,7 @@ import {
   Search,
   UserCheck,
   Percent,
+  Key,
 } from "lucide-react"
 
 const navigation = [
@@ -18,6 +19,11 @@ const navigation = [
     name: "Dashboard",
     href: "/dashboard",
     icon: LayoutDashboard,
+  },
+  {
+    name: "Licencias",
+    href: "/dashboard/licenses",
+    icon: Key,
   },
   {
     name: "Blog",
@@ -65,9 +71,12 @@ export function DashboardNav() {
   const pathname = usePathname()
 
   return (
-    <nav className="space-y-2">
+    <nav className="space-y-2 p-2">
       {navigation.map((item) => {
-        const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
+        // For /dashboard root, only exact match. For others, allow startsWith
+        const isActive = item.href === "/dashboard" 
+          ? pathname === "/dashboard"
+          : pathname === item.href || pathname.startsWith(item.href + "/")
 
         return (
           <div key={item.name}>
