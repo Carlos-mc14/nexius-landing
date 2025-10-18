@@ -18,6 +18,15 @@ function formatDate(value?: string | null) {
   return date.toLocaleDateString("es-PE")
 }
 
+function pickPositive(...values: Array<number | null | undefined>) {
+  for (const value of values) {
+    if (value === null || value === undefined) continue
+    const numeric = Number(value)
+    if (Number.isFinite(numeric) && numeric > 0) return numeric
+  }
+  return 0
+}
+
 const STAGE_INTROS: Record<string, string> = {
   pre_due_3d: "Faltan 3 días para la fecha de pago. 💡",
   pre_due_2d: "Faltan 2 días para la fecha de pago. ⏳",
@@ -62,9 +71,8 @@ function pickClientLabel(licenses: Array<LicenseRecord & { _id: string }>, expli
 function summarizeLicense(license: LicenseRecord & { _id: string }, currencyFallback: string) {
   const currency = license.currency || currencyFallback
   const amount = formatCurrency(license.amount, currency)
-  const initialCharge = license.proratedAmountDue ?? license.outstandingBalance ?? license.amount
-  const outstandingValue = license.outstandingBalance ?? initialCharge
-  const outstanding = formatCurrency(outstandingValue, currency)
+  const outstandingValue = pickPositive(license.outstandingBalance, license.proratedAmountDue, license.amount)
+  const outstanding = formatCurrency(outstandingValue || license.amount || 0, currency)
   const nextPayment = formatDate(license.nextPaymentDue)
   const graceDays = license.gracePeriodDays ?? 0
   const latePct = typeof license.lateFeePercentage === "number" ? license.lateFeePercentage : undefined

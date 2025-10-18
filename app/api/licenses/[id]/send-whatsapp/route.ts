@@ -18,6 +18,15 @@ function formatDate(value?: string | null) {
   return date.toLocaleDateString("es-PE")
 }
 
+function pickPositive(...values: Array<number | null | undefined>) {
+  for (const value of values) {
+    if (value === null || value === undefined) continue
+    const numeric = Number(value)
+    if (Number.isFinite(numeric) && numeric > 0) return numeric
+  }
+  return 0
+}
+
 // POST /api/licenses/:id/send-whatsapp
 // Envía un mensaje de WhatsApp usando Chatwoot (inbox configurado) con los detalles de la licencia.
 // Requiere variables de entorno:
@@ -83,11 +92,14 @@ export async function POST(request: Request, { params }: { params: { id: string 
     const start = formatDate(license.startDate)
     const end = formatDate(license.endDate)
     const nextPayment = formatDate(license.nextPaymentDue)
-    const initialCharge = license.proratedAmountDue ?? license.outstandingBalance ?? license.amount
-    const prorationLine = license.proratedAmountDue
-      ? `📆 Cobro inicial (${license.proratedDays ?? '-'} de ${license.billingCycleDays ?? '-'} días): ${formatCurrency(license.proratedAmountDue, currency)}`
-      : `📆 Cobro inicial: ${formatCurrency(initialCharge, currency)}`
-    const outstandingText = formatCurrency(license.outstandingBalance ?? initialCharge, currency)
+    const prorationAmount = Number(license.proratedAmountDue)
+    const hasProration = Number.isFinite(prorationAmount) && prorationAmount > 0
+    const initialReference = pickPositive(license.proratedAmountDue, license.amount)
+    const prorationLine = hasProration
+      ? `📆 Cobro inicial (${license.proratedDays ?? '-'} de ${license.billingCycleDays ?? '-'} días): ${formatCurrency(prorationAmount, currency)}`
+      : `📆 Cobro inicial: ${formatCurrency(initialReference || license.amount || 0, currency)}`
+    const outstandingValue = pickPositive(license.outstandingBalance, license.proratedAmountDue, license.amount)
+    const outstandingText = formatCurrency(outstandingValue || license.amount || 0, currency)
     const graceDays = license.gracePeriodDays ?? 0
     const latePct = typeof license.lateFeePercentage === 'number' ? license.lateFeePercentage : undefined
     const fallbackLate = typeof license.lateFeeAmount === 'number' ? license.lateFeeAmount : undefined
