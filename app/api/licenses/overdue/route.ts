@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { connectToDatabase } from '@/lib/db'
 import { requireApiKeyFromHeaders } from '@/lib/apiAuth'
+import { findLicenses } from '@/lib/licenses'
 
 // GET /api/licenses/overdue?grace=true&limit=100
 // Lists licenses whose endDate (or nextPaymentDue) is past now. If grace=true, still include those within grace period.
@@ -10,35 +10,30 @@ export async function GET(request: Request) {
   const url = new URL(request.url)
   const includeGrace = url.searchParams.get('grace') === 'true'
   const limit = parseInt(url.searchParams.get('limit') || '100', 10)
+  const safeLimit = Number.isFinite(limit) && limit > 0 ? limit : 100
   const now = new Date()
-  const { db } = await connectToDatabase()
+  const nowIso = now.toISOString()
 
-  // Build query: endDate < now OR (nextPaymentDue < now)
-  const q: any = {
+  const candidates = await findLicenses({
     $or: [
-      { endDate: { $lt: now.toISOString() } },
-      { nextPaymentDue: { $lt: now.toISOString() } }
+      { endDate: { $lt: nowIso } },
+      { nextPaymentDue: { $lt: nowIso } }
     ],
     status: { $ne: 'cancelled' }
-  }
+  }, { limit: safeLimit })
 
-  const cursor = db.collection('licenses').find(q).limit(limit)
-  const raw = await cursor.toArray()
+  const items = candidates.filter((license) => {
+    if (includeGrace) return true
+    if (!license.endDate) return true
+    const end = new Date(license.endDate)
+    if (now <= end) return false
+    const graceDays = license.gracePeriodDays || 0
+    if (graceDays > 0) {
+      const graceUntil = new Date(end.getTime() + graceDays * 86400000)
+      return now > graceUntil
+    }
+    return true
+  })
 
-  interface LicDoc { _id: any; endDate?: string; gracePeriodDays?: number; nextPaymentDue?: string; status?: string }
-  const list = raw.map(r => ({ ...(r as LicDoc), _id: (r as any)._id.toString() }))
-    .filter((r: LicDoc) => {
-      if (includeGrace) return true
-      if (!r.endDate) return true
-      const end = new Date(r.endDate)
-      if (now <= end) return false
-      const graceDays = r.gracePeriodDays || 0
-      if (graceDays > 0) {
-        const graceUntil = new Date(end.getTime() + graceDays * 86400000)
-        return now > graceUntil
-      }
-      return true
-    })
-
-  return NextResponse.json({ count: list.length, items: list })
+  return NextResponse.json({ count: items.length, items })
 }

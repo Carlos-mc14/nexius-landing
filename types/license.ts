@@ -22,6 +22,22 @@ export interface LicensePaymentRecord {
   notes?: string
   createdAt?: string
   transactionId?: string
+  // Portion of the payment that covered accumulated late fees (if any)
+  lateFeePortion?: number
+}
+
+export type LicenseChargeType = "proration" | "late_fee"
+
+export interface LicenseChargeRecord {
+  _id?: string
+  type: LicenseChargeType
+  periodKey: string
+  amount: number
+  description?: string
+  appliedAt: string
+  periodStart?: string
+  periodEnd?: string
+  metadata?: Record<string, any>
 }
 
 export interface LicenseRecord {
@@ -62,4 +78,13 @@ export interface LicenseRecord {
   paymentVerificationState?: 'idle' | 'awaiting' | 'verifying' | 'verified'
   createdAt?: string
   updatedAt?: string
+  // Late fee handling
+  lateFeeAmount?: number
+  lateFeePercentage?: number
+  outstandingBalance?: number
+  chargesHistory?: LicenseChargeRecord[]
+  // Snapshot of current proration when schedule is automatic
+  proratedAmountDue?: number
+  proratedDays?: number
+  billingCycleDays?: number
 }

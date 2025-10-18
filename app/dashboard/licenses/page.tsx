@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet"
-import { Search, Plus, RefreshCw, Copy, Edit, CheckCircle2, AlertCircle, Clock, XCircle, DollarSign, Calendar, Building2, CreditCard, Filter } from "lucide-react"
+import { Search, Plus, RefreshCw, Copy, Edit, CheckCircle2, AlertCircle, Clock, XCircle, DollarSign, Calendar, Building2, CreditCard, Filter, Info } from "lucide-react"
 
 type License = any
 
@@ -37,6 +37,161 @@ const PAYMENT_METHOD_LABELS = {
   other: "Otro"
 }
 
+const CURRENCY_FALLBACK = "PEN"
+
+function round2(value: number) {
+  if (!Number.isFinite(value)) return 0
+  return Math.round((value + Number.EPSILON) * 100) / 100
+}
+
+function parseDateValue(value: any): Date | null {
+  if (!value) return null
+  if (value instanceof Date && Number.isFinite(value.getTime())) return value
+  const str = typeof value === "string" ? value : String(value)
+  if (!str) return null
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+    const [y, m, d] = str.split("-").map(Number)
+    if (!y || !m || !d) return null
+    const dt = new Date(y, m - 1, d)
+    return Number.isFinite(dt.getTime()) ? dt : null
+  }
+  const dt = new Date(str)
+  return Number.isFinite(dt.getTime()) ? dt : null
+}
+
+function startOfDayLocal(date: Date | null) {
+  if (!date) return null
+  const d = new Date(date)
+  d.setHours(0, 0, 0, 0)
+  return d
+}
+
+function daysInMonth(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
+}
+
+function formatCurrency(amount: any, currency?: string) {
+  if (amount === undefined || amount === null || amount === "") return "—"
+  const num = Number(amount)
+  if (!Number.isFinite(num)) return "—"
+  try {
+    return new Intl.NumberFormat("es-PE", {
+      style: "currency",
+      currency: currency || CURRENCY_FALLBACK,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(num)
+  } catch {
+    return `${num.toFixed(2)} ${currency || CURRENCY_FALLBACK}`
+  }
+}
+
+function formatDate(value: any) {
+  const d = parseDateValue(value)
+  if (!d) return "—"
+  return d.toLocaleDateString("es-PE")
+}
+
+interface SchedulePreview {
+  ready: boolean
+  requiresStartDate: boolean
+  monthlyAmount: number
+  initialCharge: number
+  prorationAmount?: number
+  prorationDays?: number
+  billingCycleDays?: number
+  nextPaymentDue?: Date | null
+  coverageEnd?: Date | null
+  gracePeriodDays?: number
+  lateFeePercentage?: number
+  lateFeeAmount?: number
+  outstandingBalance?: number
+  frequencyLabel: string
+}
+
+function computeSchedulePreview(data: any): SchedulePreview {
+  const amount = Number(data?.amount)
+  const currency = data?.currency || CURRENCY_FALLBACK
+  const scheduleMode = data?.scheduleMode || "manual"
+  const startDate = parseDateValue(data?.startDate) || null
+  const nextPaymentDueRaw = parseDateValue(data?.nextPaymentDue)
+  const grace = data?.gracePeriodDays !== undefined ? Number(data?.gracePeriodDays) : undefined
+  const frequencyLabel = data?.frequency === "annual" ? "Anual" : "Mensual"
+  const explicitProrationAmount = data?.proratedAmountDue !== undefined ? Number(data?.proratedAmountDue) : undefined
+  const explicitProrationDays = data?.proratedDays !== undefined ? Number(data?.proratedDays) : undefined
+  const explicitBillingDays = data?.billingCycleDays !== undefined ? Number(data?.billingCycleDays) : undefined
+  const lateFeePct = data?.lateFeePercentage !== undefined && data?.lateFeePercentage !== null
+    ? Number(data?.lateFeePercentage)
+    : undefined
+  const lateFeeFixed = data?.lateFeeAmount !== undefined && data?.lateFeeAmount !== null
+    ? Number(data?.lateFeeAmount)
+    : undefined
+  const outstanding = data?.outstandingBalance !== undefined && data?.outstandingBalance !== null
+    ? Number(data?.outstandingBalance)
+    : undefined
+
+  let prorationAmount = Number.isFinite(explicitProrationAmount) ? explicitProrationAmount : undefined
+  let prorationDays = Number.isFinite(explicitProrationDays) ? explicitProrationDays : undefined
+  let billingDays = Number.isFinite(explicitBillingDays) ? explicitBillingDays : undefined
+
+  let nextPaymentDue = nextPaymentDueRaw
+  let coverageEnd: Date | null = parseDateValue(data?.endDate)
+
+  if (scheduleMode === "monthly_first") {
+    const reference = startOfDayLocal(startDate) || startOfDayLocal(new Date())
+    if (!nextPaymentDue) {
+      if (reference) {
+        const due = new Date(reference)
+        due.setMonth(due.getMonth() + 1)
+        due.setDate(1)
+        nextPaymentDue = startOfDayLocal(due)
+      }
+    }
+    if (nextPaymentDue) {
+      const end = new Date(nextPaymentDue)
+      end.setDate(end.getDate() - 1)
+      coverageEnd = startOfDayLocal(end)
+    }
+    if (!Number.isFinite(prorationAmount) && reference) {
+      const totalDays = daysInMonth(reference)
+      const startDay = reference.getDate()
+      if (startDay > 1) {
+        const remainingDays = totalDays - startDay + 1
+        const ratio = remainingDays / totalDays
+        prorationAmount = round2(amount * ratio)
+        prorationDays = remainingDays
+        billingDays = totalDays
+      }
+    }
+  } else if (!nextPaymentDue) {
+    nextPaymentDue = coverageEnd || null
+  }
+
+  const resolvedMonthly = Number.isFinite(amount) ? amount : 0
+  const resolvedInitial = Number.isFinite(prorationAmount) ? Number(prorationAmount) : resolvedMonthly
+  const computedOutstanding = Number.isFinite(outstanding) ? Number(outstanding) : resolvedInitial
+  const lateFeeAmount = Number.isFinite(lateFeeFixed)
+    ? lateFeeFixed
+    : (lateFeePct !== undefined && Number.isFinite(amount) ? round2(amount * (lateFeePct / 100)) : undefined)
+
+  return {
+    ready: Number.isFinite(amount) && amount > 0,
+    requiresStartDate: scheduleMode === "monthly_first" && !startDate,
+    monthlyAmount: resolvedMonthly,
+    initialCharge: resolvedInitial,
+    prorationAmount: Number.isFinite(prorationAmount) ? prorationAmount : undefined,
+    prorationDays: Number.isFinite(prorationDays) ? prorationDays : undefined,
+    billingCycleDays: Number.isFinite(billingDays) ? billingDays : undefined,
+    nextPaymentDue: nextPaymentDue || null,
+    coverageEnd: coverageEnd || null,
+    gracePeriodDays: Number.isFinite(grace) ? Number(grace) : undefined,
+    lateFeePercentage: Number.isFinite(lateFeePct) ? Number(lateFeePct) : undefined,
+    lateFeeAmount: Number.isFinite(lateFeeAmount) ? lateFeeAmount : undefined,
+    outstandingBalance: Number.isFinite(computedOutstanding) ? computedOutstanding : undefined,
+    frequencyLabel,
+  }
+}
+
 export default function LicensesPage() {
   const [list, setList] = useState<License[]>([])
   const [filteredList, setFilteredList] = useState<License[]>([])
@@ -55,8 +210,45 @@ export default function LicensesPage() {
     companyName: "", rucOrDni: "", phoneNumber: "", email: "", amount: 0, currency: "PEN", 
     frequency: "monthly", scheduleMode: "manual", domain: "", serviceType: "", status: "pending", 
     paymentMethod: "transfer", startDate: "", endDate: "", nextPaymentDue: "", 
-    gracePeriodDays: 7, notes: "" 
+    gracePeriodDays: 7, lateFeePercentage: 0, notes: "" 
   })
+
+  const formPreview = useMemo(() => computeSchedulePreview(form), [
+    form.amount,
+    form.currency,
+    form.scheduleMode,
+    form.startDate,
+    form.endDate,
+    form.nextPaymentDue,
+    form.frequency,
+    form.gracePeriodDays,
+    form.lateFeePercentage,
+    form.lateFeeAmount,
+    form.outstandingBalance,
+    form.proratedAmountDue,
+    form.proratedDays,
+    form.billingCycleDays,
+  ])
+
+  const createdPreview = useMemo(() => {
+    if (!createdLicense) return null
+    return computeSchedulePreview({
+      amount: createdLicense.amount,
+      currency: createdLicense.currency,
+      scheduleMode: createdLicense.scheduleMode,
+      startDate: createdLicense.startDate,
+      endDate: createdLicense.endDate,
+      nextPaymentDue: createdLicense.nextPaymentDue,
+      frequency: createdLicense.frequency,
+      gracePeriodDays: createdLicense.gracePeriodDays,
+      lateFeePercentage: createdLicense.lateFeePercentage,
+      lateFeeAmount: createdLicense.lateFeeAmount,
+      outstandingBalance: createdLicense.outstandingBalance,
+      proratedAmountDue: createdLicense.proratedAmountDue,
+      proratedDays: createdLicense.proratedDays,
+      billingCycleDays: createdLicense.billingCycleDays,
+    })
+  }, [createdLicense])
 
   useEffect(() => {
     fetchList()
@@ -98,14 +290,19 @@ export default function LicensesPage() {
       companyName: "", rucOrDni: "", phoneNumber: "", email: "", amount: 0, currency: "PEN", 
       frequency: "monthly", scheduleMode: "manual", domain: "", serviceType: "", status: "pending", 
       paymentMethod: "transfer", startDate: "", endDate: "", nextPaymentDue: "", 
-      gracePeriodDays: 7, notes: "" 
+      gracePeriodDays: 7, lateFeePercentage: 0, notes: "" 
     })
     setOpen(true)
   }
 
   function openEdit(item: License) {
     setEditing(item)
-  setForm({ ...item })
+  const lateFeePct = typeof item?.lateFeePercentage === "number"
+    ? item.lateFeePercentage
+    : (typeof item?.lateFeeAmount === "number" && typeof item?.amount === "number" && item.amount > 0)
+      ? Number(((item.lateFeeAmount / item.amount) * 100).toFixed(2))
+      : 0
+  setForm({ ...item, lateFeePercentage: lateFeePct })
     setOpen(true)
   }
 
@@ -150,8 +347,25 @@ export default function LicensesPage() {
 
   function buildWhatsappUrl(lic: any) {
     if (!lic) return "#"
-    const start = lic.startDate ? new Date(lic.startDate).toLocaleDateString('es-PE') : '—'
-    const end = lic.endDate ? new Date(lic.endDate).toLocaleDateString('es-PE') : '—'
+    const preview = computeSchedulePreview({
+      amount: lic.amount,
+      currency: lic.currency,
+      scheduleMode: lic.scheduleMode,
+      startDate: lic.startDate,
+      endDate: lic.endDate,
+      nextPaymentDue: lic.nextPaymentDue,
+      frequency: lic.frequency,
+      gracePeriodDays: lic.gracePeriodDays,
+      lateFeePercentage: lic.lateFeePercentage,
+      lateFeeAmount: lic.lateFeeAmount,
+      outstandingBalance: lic.outstandingBalance,
+      proratedAmountDue: lic.proratedAmountDue,
+      proratedDays: lic.proratedDays,
+      billingCycleDays: lic.billingCycleDays,
+    })
+    const currency = lic.currency || CURRENCY_FALLBACK
+    const start = formatDate(lic.startDate)
+    const end = formatDate(lic.endDate)
     const statusLabels: Record<string,string> = {
       paid: 'Pagado',
       pending: 'Pendiente',
@@ -159,13 +373,29 @@ export default function LicensesPage() {
       cancelled: 'Cancelado'
     }
     const frecuencia = lic.frequency === 'monthly' ? 'Mensual' : 'Anual'
+    const prorationLine = preview.prorationAmount
+      ? `📆 Cobro inicial (${preview.prorationDays || '-'} de ${preview.billingCycleDays || '-'} días): ${formatCurrency(preview.prorationAmount, currency)}`
+      : `📆 Cobro inicial: ${formatCurrency(preview.initialCharge, currency)}`
+    const graceDays = preview.gracePeriodDays ?? lic.gracePeriodDays ?? 0
+    const latePct = preview.lateFeePercentage ?? lic.lateFeePercentage
+    const lateAmount = preview.lateFeeAmount ?? lic.lateFeeAmount
+    const lateText = latePct !== undefined
+      ? `${latePct}% (${formatCurrency(lateAmount ?? (preview.monthlyAmount * (latePct / 100)), currency)})`
+      : formatCurrency(lateAmount, currency)
+    const outstandingText = formatCurrency(preview.outstandingBalance ?? lic.outstandingBalance, currency)
     const lines = [
       `Hola ${lic.companyName || ''} 👋`,
       'Te compartimos los detalles de tu licencia:',
       '',
-      `🛠 Servicio: ${lic.serviceType || '—'}`,
-      `💵 Monto: ${lic.amount} ${lic.currency || ''} (${frecuencia})`,
+      `� Licencia: ${lic.licenseKey || '—'}`,
+      `�🛠 Servicio: ${lic.serviceType || '—'}`,
+      `💵 Tarifa ${frecuencia}: ${formatCurrency(preview.monthlyAmount, currency)}`,
+      prorationLine,
       `📅 Vigencia: ${start} - ${end}`,
+      `📅 Próximo pago: ${formatDate(preview.nextPaymentDue || lic.nextPaymentDue)}`,
+      `⏳ Días de gracia: ${graceDays}`,
+      `⚠️ Mora: ${lateText}`,
+      `💼 Saldo pendiente: ${outstandingText}`,
       `⚙️ Estado: ${statusLabels[lic.status] || lic.status || '—'}`,
       '',
       'Guía de pagos:',
@@ -229,7 +459,7 @@ export default function LicensesPage() {
       </div>
 
       {/* Cards de estadísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -521,7 +751,7 @@ export default function LicensesPage() {
                 <DollarSign className="h-4 w-4" />
                 Información de Pago
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <div>
                   <label className="text-xs font-medium text-muted-foreground mb-1 block">Monto *</label>
                   <Input 
@@ -608,7 +838,7 @@ export default function LicensesPage() {
                 <Calendar className="h-4 w-4" />
                 Período de Vigencia
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <div>
                   <label className="text-xs font-medium text-muted-foreground mb-1 block">Fecha de Inicio</label>
                   <Input 
@@ -634,12 +864,85 @@ export default function LicensesPage() {
                   />
                 </div>
                 <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Mora (%)</label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={form.lateFeePercentage ?? ""}
+                    onChange={(e) => {
+                      const value = e.target.value
+                      setForm({
+                        ...form,
+                        lateFeePercentage: value === "" ? undefined : Number(value)
+                      })
+                    }}
+                  />
+                </div>
+                <div>
                   <label className="text-xs font-medium text-muted-foreground mb-1 block">Próximo Pago (solo lectura)</label>
                   <Input 
                     disabled 
                     value={form.nextPaymentDue ? new Date(form.nextPaymentDue).toLocaleDateString('es-PE') : ''} 
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* Resumen */}
+            <div>
+              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                <Info className="h-4 w-4" />
+                Resumen de Cobro
+              </h3>
+              <div className="rounded-md border border-border/60 bg-muted/40 p-4 space-y-2 text-sm">
+                {!formPreview.ready ? (
+                  <p className="text-muted-foreground">Ingresa el monto de la licencia para ver un resumen.</p>
+                ) : formPreview.requiresStartDate ? (
+                  <p className="text-muted-foreground">Selecciona la fecha de inicio para calcular el prorrateo del primer pago.</p>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Tarifa {formPreview.frequencyLabel}</span>
+                      <span className="font-medium">{formatCurrency(formPreview.monthlyAmount, form.currency)}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Cobro inicial estimado</span>
+                      <span className="font-medium">
+                        {formatCurrency(formPreview.initialCharge, form.currency)}
+                        {formPreview.prorationAmount && formPreview.prorationDays && formPreview.billingCycleDays ? (
+                          <span className="block text-xs text-muted-foreground text-right">
+                            Incluye {formPreview.prorationDays} de {formPreview.billingCycleDays} días del mes actual
+                          </span>
+                        ) : null}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Próximo pago estimado</span>
+                      <span className="font-medium">{formatDate(formPreview.nextPaymentDue)}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Cobertura hasta</span>
+                      <span className="font-medium">{formatDate(formPreview.coverageEnd)}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Días de gracia</span>
+                      <span className="font-medium">{form.gracePeriodDays ?? "—"}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Mora</span>
+                      <span className="font-medium">
+                        {formPreview.lateFeePercentage !== undefined
+                          ? `${formPreview.lateFeePercentage}% (${formatCurrency(formPreview.lateFeeAmount, form.currency)})`
+                          : formatCurrency(formPreview.lateFeeAmount, form.currency)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Saldo estimado</span>
+                      <span className="font-medium">{formatCurrency(formPreview.outstandingBalance, form.currency)}</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -688,6 +991,27 @@ export default function LicensesPage() {
           <DialogFooter className="mt-6 gap-2">
             {createdLicense && !editing ? (
               <div className="flex flex-col w-full gap-3">
+                {createdPreview && createdPreview.ready && (
+                  <div className="rounded-md border border-border/60 bg-muted/40 p-4 text-sm space-y-2">
+                    <p className="font-semibold text-sm">Resumen confirmado</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Tarifa {createdPreview.frequencyLabel}</span>
+                      <span className="font-medium">{formatCurrency(createdPreview.monthlyAmount, createdLicense.currency)}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Cobro inicial</span>
+                      <span className="font-medium">{formatCurrency(createdPreview.initialCharge, createdLicense.currency)}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Próximo pago</span>
+                      <span className="font-medium">{formatDate(createdPreview.nextPaymentDue)}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Saldo pendiente</span>
+                      <span className="font-medium">{formatCurrency(createdPreview.outstandingBalance, createdLicense.currency)}</span>
+                    </div>
+                  </div>
+                )}
                 <div className="flex flex-wrap gap-2">
                   <Button variant="outline" onClick={() => { setCreatedLicense(null); setOpen(false) }}>Cerrar</Button>
                   <Button 
